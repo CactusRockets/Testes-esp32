@@ -1,4 +1,5 @@
 #include "Arduino.h"
+#include "heltec.h"
 
 #include <Wire.h>
 #include <SD.h>
@@ -8,10 +9,13 @@
 
 #define BMP_ADRESS 0x76
 #define MPU_ADRESS 0x68
-#define CS_PIN 17
+#define CS_PIN_SD 17
+#define CS_PIN_LORA 18
+#define BAND 433E6
 
-#define ENABLE_SERIAL_BEGIN true
+#define ENABLE_SERIAL_BEGIN false
 #define ENABLE_SD true
+#define ENABLE_LORA_OLED true
 
 int contador = 0;
 Adafruit_BMP280 bmp;
@@ -24,8 +28,6 @@ void writeSd(String text){
     logfile.println(text);
     Serial.println("Gravando...");
     logfile.close();
-  } else {
-    Serial.println("Não foi possível gravar...");
   }
 }
 
@@ -36,12 +38,13 @@ void setup() {
 
 
   if(ENABLE_SD) {
-    if(!SD.begin(CS_PIN)){
+    if(!SD.begin(CS_PIN_SD)){
       Serial.println("SD not working ...");
       while(1);
     }
     Serial.println("MicroSD Conectado!");
   }
+  digitalWrite(CS_PIN_SD, HIGH);
 
 
   if (!mpu.begin(MPU_ADRESS)) {
@@ -72,6 +75,18 @@ void setup() {
                   Adafruit_BMP280::FILTER_X16,
                   Adafruit_BMP280::STANDBY_MS_500);
 
+
+
+  if(ENABLE_LORA_OLED) {
+    /* DisplayEnable Enable */
+    /* Heltec.LoRa Disable */
+    /* Serial Enable */
+    /* PABOOST Enable */
+    /* long BAND */
+    Heltec.begin(false, true, true, true, BAND);
+    Serial.println("LoRa inicializado!");
+  }
+  digitalWrite(CS_PIN_LORA, HIGH);
 }
 
 
@@ -86,11 +101,25 @@ void loop() {
   Serial.println(g.gyro.pitch);
   Serial.println(g.gyro.roll);
 
-
+  digitalWrite(CS_PIN_SD, LOW);
   if(ENABLE_SD) {
     writeSd("Alanzinho" + String(contador));
   }
+  digitalWrite(CS_PIN_SD, HIGH);
   
+  digitalWrite(CS_PIN_LORA, LOW);
+  if(ENABLE_LORA_OLED) {
+    Serial.print("Sending packet: ");
+    Serial.println(contador);
+
+    LoRa.beginPacket();
+    LoRa.setTxPower(14, RF_PACONFIG_PASELECT_PABOOST);
+    LoRa.print("hello ");
+    LoRa.print(contador);
+    LoRa.endPacket();
+  }
+  digitalWrite(CS_PIN_LORA, HIGH);
+
 
 
   contador++;

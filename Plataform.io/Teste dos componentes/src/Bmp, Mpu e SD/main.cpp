@@ -1,4 +1,5 @@
-#include <Arduino.h>
+#include "Arduino.h"
+
 #include <Wire.h>
 #include <SD.h>
 #include <Adafruit_BMP280.h>
@@ -23,6 +24,8 @@ void writeSd(String text){
     logfile.println(text);
     Serial.println("Gravando...");
     logfile.close();
+  } else {
+    Serial.println("Não foi possível gravar...");
   }
 }
 
