@@ -15,7 +15,7 @@
 
 #define ENABLE_SERIAL_BEGIN false
 #define ENABLE_SD true
-#define ENABLE_LORA_OLED true
+#define ENABLE_LORA true
 
 int contador = 0;
 Adafruit_BMP280 bmp;
@@ -77,7 +77,7 @@ void setup() {
 
 
 
-  if(ENABLE_LORA_OLED) {
+  if(ENABLE_LORA) {
     /* DisplayEnable Enable */
     /* Heltec.LoRa Disable */
     /* Serial Enable */
@@ -108,7 +108,7 @@ void loop() {
   digitalWrite(CS_PIN_SD, HIGH);
   
   digitalWrite(CS_PIN_LORA, LOW);
-  if(ENABLE_LORA_OLED) {
+  if(ENABLE_LORA) {
     Serial.print("Sending packet: ");
     Serial.println(contador);
 

@@ -70,6 +70,7 @@ MPU6050:
 - GND: GND (do ESP32)
 
 #### Detalhes
+Nada inicializou corretamente.
 
 ### Selecionando Placa DOIT ESP32 Devkit V1
 #### Pinagem
