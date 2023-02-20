@@ -32,6 +32,7 @@ void writeSd(String text){
 }
 
 void setup() {
+
   if(ENABLE_SERIAL_BEGIN) {
     Serial.begin(115200);
   }
