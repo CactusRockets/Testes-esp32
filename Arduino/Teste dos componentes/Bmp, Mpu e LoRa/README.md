@@ -16,9 +16,9 @@ Versão da IDE: 1.8.19
 ### Selecionando Placa Heltec WiFi LoRa 32 (V2)
 #### Pinagem
 Módulo SD:
-- MOSI: GPIO23
+- MOSI: GPIO27
 - MISO: GPIO19
-- SCLK: GPIO18
+- SCLK: GPIO5
 - CS: GPIO17
 - VCC: 5V (do ESP32)
 - GND: GND (do ESP32)
@@ -40,9 +40,9 @@ OBS.: Apesar do módulo SD estar conectado no circuito, ele não é inicializado
 
 #### Pinagem
 Módulo SD:
-- MOSI: GPIO27
+- MOSI: GPIO23
 - MISO: GPIO19
-- SCLK: GPIO5
+- SCLK: GPIO18
 - CS: GPIO17
 - VCC: 5V (do ESP32)
 - GND: GND (do ESP32)

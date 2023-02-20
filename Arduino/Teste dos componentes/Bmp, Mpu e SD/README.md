@@ -36,6 +36,8 @@ MPU6050:
 #### Detalhes
 Aparentemente, nessa configuração o BMP e o MPU funcionam bem. O único problema é o módulo de cartão SD que às vezes funciona e outras vezes não. O problema aparentemente é com a comunicação SPI do Esp32 e do módulo.
 
+Melhor, o módulo SD funciona somente nas primeiras gravações. Depois, de um tempo ele não consegue mais gravar no cartão SD.
+
 #### Pinagem
 Módulo SD:
 - MOSI: GPIO23
