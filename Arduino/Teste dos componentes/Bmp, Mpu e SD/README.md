@@ -36,6 +36,28 @@ MPU6050:
 #### Detalhes
 Aparentemente, nessa configuração o BMP e o MPU funcionam bem. O único problema é o módulo de cartão SD que às vezes funciona e outras vezes não. O problema aparentemente é com a comunicação SPI do Esp32 e do módulo.
 
+#### Pinagem
+Módulo SD:
+- MOSI: GPIO23
+- MISO: GPIO19
+- SCLK: GPIO18
+- CS: GPIO17
+- VCC: 5V (do ESP32)
+- GND: GND (do ESP32)
+BMP280:
+- SDA: 21
+- SCL: 22
+- VCC: 3.3V (do ESP32)
+- GND: GND (do ESP32)
+MPU6050:
+- SDA: 21
+- SCL: 22
+- VCC: 3.3V (do ESP32)
+- GND: GND (do ESP32)
+
+#### Detalhes
+Aparentemente, nessa configuração o BMP e o MPU funcionam bem. Porém, o cartão SD não funcionou. O problema aparentemente é com a comunicação SPI do Esp32 e do módulo.
+
 ### Selecionando Placa DOIT ESP32 Devkit V1
 #### Pinagem
 Módulo SD:

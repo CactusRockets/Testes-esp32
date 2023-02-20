@@ -16,6 +16,30 @@ Versão da IDE: 1.8.19
 ### Selecionando Placa Heltec WiFi LoRa 32 (V2)
 #### Pinagem
 Módulo SD:
+- MOSI: GPIO23
+- MISO: GPIO19
+- SCLK: GPIO18
+- CS: GPIO17
+- VCC: 5V (do ESP32)
+- GND: GND (do ESP32)
+BMP280:
+- SDA: 21
+- SCL: 22
+- VCC: 3.3V (do ESP32)
+- GND: GND (do ESP32)
+MPU6050:
+- SDA: 21
+- SCL: 22
+- VCC: 3.3V (do ESP32)
+- GND: GND (do ESP32)
+
+#### Detalhes
+Nessa configuração o BMP e o MPU funcionam bem. O LoRa também funcionou apropriadamente (conseguiu enviar os pacotes), mas nada foi mostrado no display OLED.
+
+OBS.: Apesar do módulo SD estar conectado no circuito, ele não é inicializado.
+
+#### Pinagem
+Módulo SD:
 - MOSI: GPIO27
 - MISO: GPIO19
 - SCLK: GPIO5
@@ -34,7 +58,7 @@ MPU6050:
 - GND: GND (do ESP32)
 
 #### Detalhes
-Nessa configuração o BMP e o MPU funcionam bem. O LoRa também funcionou apropriadamente.
+Nessa configuração o BMP e o MPU funcionam bem. O LoRa também funcionou apropriadamente (conseguiu enviar os pacotes), mas nada foi mostrado no display OLED.
 
 OBS.: Apesar do módulo SD estar conectado no circuito, ele não é inicializado.
 
