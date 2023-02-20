@@ -9,21 +9,16 @@
   OLED_SDA -- GPIO4
   OLED_SCL -- GPIO15
   OLED_RST -- GPIO16
-  
-  by Aaron.Lee from HelTec AutoMation, ChengDu, China
-  成都惠利特自动化科技有限公司
-  www.heltec.cn
-  
-  This project is also available on GitHub:
-  https://github.com/Heltec-Aaron-Lee/WiFi_Kit_series
 */
+
 #include "heltec.h" 
 #include "images.h"
 
-#define BAND    433E6  //you can set band here directly,e.g. 868E6,915E6
+#define BAND 433E6
+
 String rssi = "RSSI --";
 String packSize = "--";
-String packet ;
+String packet;
 
 void logo(){
   Heltec.display->clear();
@@ -49,9 +44,15 @@ void cbk(int packetSize) {
   LoRaData();
 }
 
-void setup() { 
-   //WIFI Kit series V1 not support Vext control
-  Heltec.begin(true /*DisplayEnable Enable*/, true /*Heltec.Heltec.Heltec.LoRa Disable*/, true /*Serial Enable*/, true /*PABOOST Enable*/, BAND /*long BAND*/);
+void setup() {
+  // WIFI Kit series V1 not support Vext control
+
+  /* DisplayEnable Enable */
+  /* Heltec.LoRa Disable */
+  /* Serial Enable */
+  /* PABOOST Enable */
+  /* long BAND */
+  Heltec.begin(true, true, true, true, BAND);
  
   Heltec.display->init();
   Heltec.display->flipScreenVertically();  
@@ -64,6 +65,7 @@ void setup() {
   Heltec.display->drawString(0, 10, "Wait for incoming data...");
   Heltec.display->display();
   delay(1000);
+  
   //LoRa.onReceive(cbk);
   LoRa.receive();
 }

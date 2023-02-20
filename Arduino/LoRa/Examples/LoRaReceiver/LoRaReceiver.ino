@@ -1,35 +1,30 @@
-/* 
-  Check the new incoming messages, and print via serialin 115200 baud rate.
-  
-  by Aaron.Lee from HelTec AutoMation, ChengDu, China
-  成都惠利特自动化科技有限公司
-  www.heltec.cn
-  
-  this project also realess in GitHub:
-  https://github.com/Heltec-Aaron-Lee/WiFi_Kit_series
-*/
-
 #include "heltec.h"
 
-#define BAND    433E6  //you can set band here directly,e.g. 868E6,915E6
+#define BAND 433E6
 void setup() {
-    //WIFI Kit series V1 not support Vext control
-  Heltec.begin(true /*DisplayEnable Enable*/, true /*Heltec.LoRa Disable*/, true /*Serial Enable*/, true /*PABOOST Enable*/, BAND /*long BAND*/);
+  // WIFI Kit series V1 not support Vext control
 
+  /* DisplayEnable Enable */
+  /* Heltec.LoRa Disable */
+  /* Serial Enable */
+  /* PABOOST Enable */
+  /* long BAND */
+  Heltec.begin(true, true, true, true, BAND);
 }
 
 void loop() {
   Serial.println("Analisando pacotes disponíveis!");
-  // try to parse packet
+  
+  // Try to parse packet
   int packetSize = LoRa.parsePacket();
   if (packetSize) {
-    // received a packet
+    // Received a packet
     Serial.print("Received packet '");
-    // read packet
+    // Read packet
     while (LoRa.available()) {
       Serial.print((char)LoRa.read());
     }
-    // print RSSI of packet
+    // Print RSSI of packet
     Serial.print("' with RSSI ");
     Serial.println(LoRa.packetRssi());
   }
