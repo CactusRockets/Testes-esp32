@@ -22,6 +22,9 @@ Adafruit_BMP280 bmp;
 File logfile;
 Adafruit_MPU6050 mpu;
 
+int success = 0;
+int lengthOfBytesWritten = 0;
+
 void writeSd(String text){
   logfile = SD.open("/meulog.txt", FILE_APPEND);
   if(logfile){
@@ -84,7 +87,7 @@ void setup() {
     /* Serial Enable */
     /* PABOOST Enable */
     /* long BAND */
-    Heltec.begin(false, true, true, true, BAND);
+    Heltec.begin(true, true, true, true, BAND);
     Serial.println("LoRa inicializado!");
   }
   digitalWrite(CS_PIN_LORA, HIGH);
@@ -113,11 +116,22 @@ void loop() {
     Serial.print("Sending packet: ");
     Serial.println(contador);
 
-    LoRa.beginPacket();
+    success = LoRa.beginPacket();
+    if(success) {
+      Serial.println("Inicialização do pacote concluída");
+    }
+    
     LoRa.setTxPower(14, RF_PACONFIG_PASELECT_PABOOST);
-    LoRa.print("hello ");
-    LoRa.print(contador);
-    LoRa.endPacket();
+    
+    lengthOfBytesWritten = LoRa.print("hello ");
+    Serial.println("Bytes escritos:" + String(lengthOfBytesWritten));
+    lengthOfBytesWritten = LoRa.print(contador);
+    Serial.println("Bytes escritos:" + String(lengthOfBytesWritten));
+    
+    success = LoRa.endPacket();
+    if(success) {
+      Serial.println("Finalização do pacote concluída");
+    }
   }
   digitalWrite(CS_PIN_LORA, HIGH);
 
