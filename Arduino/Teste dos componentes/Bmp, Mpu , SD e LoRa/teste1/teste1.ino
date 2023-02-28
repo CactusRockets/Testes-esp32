@@ -1,6 +1,5 @@
 #include "Arduino.h"
 #include "heltec.h"
-#include "images.h"
 
 #include <Wire.h>
 #include <SD.h>
@@ -16,22 +15,17 @@
 
 #define ENABLE_SERIAL_BEGIN false
 #define ENABLE_SD true
-#define ENABLE_LORA_OLED true
+#define ENABLE_LORA true
+
+#define PARACHUTE_PIN 12
 
 int contador = 0;
 Adafruit_BMP280 bmp;
 File logfile;
 Adafruit_MPU6050 mpu;
 
-String rssi = "RSSI --";
-String packSize = "--";
-String packet;
-
-void logo() {
-  Heltec.display->clear();
-  Heltec.display->drawXbm(0,5,logo_width,logo_height,logo_bits);
-  Heltec.display->display();
-}
+int success = 0;
+int lengthOfBytesWritten = 0;
 
 void writeSd(String text){
   logfile = SD.open("/meulog.txt", FILE_APPEND);
@@ -43,39 +37,13 @@ void writeSd(String text){
 }
 
 void setup() {
-  if(ENABLE_LORA_OLED) {
-    // WIFI Kit series V1 not support Vext control
-  
-    /* DisplayEnable Enable */
-    /* Heltec.LoRa Disable */
-    /* Serial Enable */
-    /* PABOOST Enable */
-    /* long BAND */
-    Heltec.begin(true, true, true, true, BAND);
-   
-    Heltec.display->init();
-    Heltec.display->flipScreenVertically();  
-    Heltec.display->setFont(ArialMT_Plain_10);
-    
-    logo();
-    delay(1500);
-    Heltec.display->clear();
-    
-    Heltec.display->drawString(0, 0, "Heltec.LoRa Initial success!");
-    Heltec.display->display();
-    delay(1000);
-  }
-  digitalWrite(CS_PIN_LORA, HIGH);
-
-  delay(5000);
-
+  digitalWrite(PARACHUTE_PIN, LOW);
 
   
 
   if(ENABLE_SERIAL_BEGIN) {
     Serial.begin(115200);
   }
-
 
 
   if(ENABLE_SD) {
@@ -86,6 +54,20 @@ void setup() {
     Serial.println("MicroSD Conectado!");
   }
   digitalWrite(CS_PIN_SD, HIGH);
+
+
+  if (!mpu.begin(MPU_ADRESS)) {
+    Serial.println("Failed to find MPU6050 chip");
+    while (1) {
+      delay(10);
+    }
+  }
+  Serial.println("MPU6050 Found!");
+
+  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+  mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+
 
 
 
@@ -104,20 +86,16 @@ void setup() {
 
 
 
-
-
-  if (!mpu.begin(MPU_ADRESS)) {
-    Serial.println("Failed to find MPU6050 chip");
-    while (1) {
-      delay(10);
-    }
+  if(ENABLE_LORA) {
+    /* DisplayEnable Enable */
+    /* Heltec.LoRa Disable */
+    /* Serial Enable */
+    /* PABOOST Enable */
+    /* long BAND */
+    Heltec.begin(true, true, true, true, BAND);
+    Serial.println("LoRa inicializado!");
   }
-  Serial.println("MPU6050 Found!");
-
-  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
-  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
-  mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
-  
+  digitalWrite(CS_PIN_LORA, HIGH);
 }
 
 
@@ -132,56 +110,41 @@ void loop() {
   Serial.println(g.gyro.pitch);
   Serial.println(g.gyro.roll);
 
-
-
-
   digitalWrite(CS_PIN_SD, LOW);
   if(ENABLE_SD) {
     writeSd("Alanzinho" + String(contador));
   }
   digitalWrite(CS_PIN_SD, HIGH);
-
-
-
   
   digitalWrite(CS_PIN_LORA, LOW);
-  if(ENABLE_LORA_OLED) {
-
-    Heltec.display->clear();
-    Heltec.display->setTextAlignment(TEXT_ALIGN_LEFT);
-    Heltec.display->setFont(ArialMT_Plain_10);
-    
-    Heltec.display->drawString(0, 0, "Sending packet: ");
-    Heltec.display->drawString(90, 0, String(contador));
-    Heltec.display->display();
-
-
-    
-    
+  if(ENABLE_LORA) {
     Serial.print("Sending packet: ");
     Serial.println(contador);
 
-    // Send packet
-    LoRa.beginPacket();
-  
-    /*
-     * LoRa.setTxPower(txPower, RFOUT_pin);
-     * txPower -- 0 ~ 20
-     * RFOUT_pin could be RF_PACONFIG_PASELECT_PABOOST or RF_PACONFIG_PASELECT_RFO
-     *   - RF_PACONFIG_PASELECT_PABOOST
-     *        LoRa single output via PABOOST, maximum output 20dBm
-     *   - RF_PACONFIG_PASELECT_RFO
-     *        LoRa single output via RFO_HF / RFO_LF, maximum output 14dBm
-    */
+    success = LoRa.beginPacket();
+    if(success) {
+      Serial.println("Inicialização do pacote concluída");
+    }
+    
     LoRa.setTxPower(14, RF_PACONFIG_PASELECT_PABOOST);
-    LoRa.print("hello ");
-    LoRa.print(contador);
-    LoRa.endPacket();
+    
+    lengthOfBytesWritten = LoRa.print("hello ");
+    Serial.println("Bytes escritos:" + String(lengthOfBytesWritten));
+    lengthOfBytesWritten = LoRa.print(contador);
+    Serial.println("Bytes escritos:" + String(lengthOfBytesWritten));
+    
+    success = LoRa.endPacket();
+    if(success) {
+      Serial.println("Finalização do pacote concluída");
+    }
   }
   digitalWrite(CS_PIN_LORA, HIGH);
-
-
-
   contador++;
+
+  digitalWrite(PARACHUTE_PIN, HIGH);
+  delay(1500);
+  digitalWrite(PARACHUTE_PIN, LOW);
+  delay(1500);
+  
   delay(3000);
 }
