@@ -24,6 +24,9 @@
 #define RESET 14
 #define DIO0 26
 
+// Variar de 0 a 14 de potência
+#define Potency 14
+
 // Frequência de comunicação SPI
 #define frequency_SPI 10E6
 // Quanto maior o fator de espalhamento, menor será o valor da sensibilidade do rádio (para recepção)
@@ -59,19 +62,21 @@ void LoRaData(){
 }
 
 void printInformations() {
-  Serial.println(rssi);
-  Serial.println(snr);
-  Serial.println("Received "+ packSize + " bytes");
+  Serial.print(rssi);
+  Serial.print(",");
+  Serial.print(snr);
+  Serial.print(",");
+  Serial.print(packSize);
+  Serial.print(",");
   Serial.println(packet);
-  Serial.println();
 }
 
 void cbk(int packetSize) {
   packet ="";
   packSize = String(packetSize, DEC);
   for (int i = 0; i < packetSize; i++) { packet += (char) LoRa.read(); }
-  rssi = "RSSI " + String(LoRa.packetRssi(), DEC);
-  snr = "SNR " + String(LoRa.packetSnr(), DEC);
+  rssi = String(LoRa.packetRssi(), DEC);
+  snr = String(LoRa.packetSnr(), DEC);
   
   LoRaData();
   printInformations();
@@ -120,7 +125,8 @@ void loop() {
    *   - RF_PACONFIG_PASELECT_RFO
    *        LoRa single output via RFO_HF / RFO_LF, maximum output 14dBm
   */
-  LoRa.setTxPower(14, RF_PACONFIG_PASELECT_PABOOST);
+
+  LoRa.setTxPower(Potency, RF_PACONFIG_PASELECT_PABOOST);
   LoRa.setFrequency(BAND);
   LoRa.setSpreadingFactor(spreadingFactor);
   LoRa.setSignalBandwidth(signalBandwidth);
