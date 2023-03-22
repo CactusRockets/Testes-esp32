@@ -104,7 +104,8 @@ void loop()
 
   // Envio de pacote
   LoRa.beginPacket();
-  LoRa.print("hello ");
+  LoRa.print("00000,00000,00000,00000,00000,00000,00000,00000,0,0,0");
+  LoRa.print(",");
   LoRa.print(counter);
   success = LoRa.endPacket();
   if(success) {
@@ -114,5 +115,5 @@ void loop()
   }
 
   counter++;
-  delay(500);
+  delay(100);
 }

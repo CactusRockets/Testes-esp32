@@ -75,32 +75,70 @@ void setup() {
 
 
 void loop() {
+  float t0,t1,t2,t3,t4,t5;  
+  t0 = millis();
+  
   sensors_event_t a, g, temp;
+  t1 = millis();
   mpu.getEvent(&a, &g, &temp);
-  Serial.println(a.acceleration.v[0]);
-  Serial.println(a.acceleration.v[1]);
-  Serial.println(a.acceleration.v[2]);
-  Serial.println(a.acceleration.z);
-  Serial.println(g.gyro.pitch);
-  Serial.println(g.gyro.roll);
+  t2 = millis();
 
-
+  /*
+  Serial.print(t2 - t1);
+  Serial.print(",");
+  Serial.print(a.acceleration.v[0]);
+  Serial.print(",");
+  Serial.print(a.acceleration.v[1]);
+  Serial.print(",");
+  Serial.print(a.acceleration.v[2]);
+  Serial.print(",");
+  Serial.print(a.acceleration.z);
+  Serial.print(",");
+  Serial.print(g.gyro.pitch);
+  Serial.print(",");
+  Serial.print(g.gyro.roll);
+  Serial.print(",");
+  Serial.println(contador);
+  */
   
   digitalWrite(CS_PIN_LORA, LOW);
   if(ENABLE_LORA) {
-    Serial.print("Sending packet: ");
-    Serial.println(contador);
 
-    LoRa.beginPacket();
+    // Setup
     LoRa.setTxPower(14, RF_PACONFIG_PASELECT_PABOOST);
-    LoRa.print("hello ");
-    LoRa.print(contador);
+
+    t3 = millis();
+    
+    // Envio de pacote
+    LoRa.beginPacket();
+    LoRa.print(t0);
+    LoRa.print(",");
+    LoRa.print(t2 - t1);
+    LoRa.print(",");
+    LoRa.print(a.acceleration.v[0]);
+    LoRa.print(",");
+    LoRa.print(a.acceleration.v[1]);
+    LoRa.print(",");
+    LoRa.print(a.acceleration.v[2]);
+    LoRa.print(",");
+    LoRa.print(a.acceleration.z);
+    LoRa.print(",");
+    LoRa.print(g.gyro.pitch);
+    LoRa.print(",");
+    LoRa.print(g.gyro.roll);
+    LoRa.print(",");
+    LoRa.println(contador);
     LoRa.endPacket();
+
+    t4 = millis();
   }
   digitalWrite(CS_PIN_LORA, HIGH);
 
-
-
   contador++;
-  delay(3000);
+
+  Serial.println("Tempo atual:" + String(t0));
+  Serial.println("Tempo para ler informações dos sensores:" + String(t2 - t1));
+  Serial.println("Tempo de envio de pacote:" + String(t4 - t3));
+  Serial.println("");
+  delay(10000);
 }
