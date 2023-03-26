@@ -105,7 +105,9 @@ void loop() {
   mpu.getEvent(&a, &g, &temp);
   t2 = millis();
 
-  /*
+  
+  Serial.print(t0);
+  Serial.print(",");
   Serial.print(t2 - t1);
   Serial.print(",");
   Serial.print(a.acceleration.v[0]);
@@ -121,7 +123,7 @@ void loop() {
   Serial.print(g.gyro.roll);
   Serial.print(",");
   Serial.println(contador);
-  */
+  
   
   digitalWrite(CS_PIN_LORA, LOW);
   if(ENABLE_LORA) {
@@ -179,5 +181,6 @@ void loop() {
   Serial.println("Tempo para ler informações dos sensores:" + String(t2 - t1));
   Serial.println("Tempo de envio de pacote:" + String(t4 - t3));
   Serial.println("");
-  delay(10000);
+  
+  delay(100);
 }
