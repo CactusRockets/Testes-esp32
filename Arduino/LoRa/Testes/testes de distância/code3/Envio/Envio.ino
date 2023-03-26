@@ -28,7 +28,7 @@
 // Quanto maior o fator de espalhamento, menor a taxa de transmissão dos dados
 #define spreadingFactor 12
 // Se refere a quantidade máxima de bits/s que determinada transmissão suporta
-#define signalBandwidth 7.8E3
+#define signalBandwidth 125E3
 // O CRC é uma técnica usada para detectar erros em dados digitais
 #define CRC 1
 // A tecnologia LoRa usa uma taxa de codificação para fornecer correção de erros (FEC)
