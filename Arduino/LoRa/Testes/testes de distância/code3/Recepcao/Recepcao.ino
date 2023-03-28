@@ -30,7 +30,7 @@
 // Quanto maior o fator de espalhamento, menor a taxa de transmissão dos dados
 #define spreadingFactor 12
 // Se refere a quantidade máxima de bits/s que determinada transmissão suporta
-#define signalBandwidth 125E3
+#define signalBandwidth 250E3
 // O CRC é uma técnica usada para detectar erros em dados digitais
 #define CRC 1
 // A tecnologia LoRa usa uma taxa de codificação para fornecer correção de erros (FEC)
@@ -38,14 +38,14 @@
 // melhor correção de erros, mas resultam em taxas de dados mais baixas.
 // Em um ambiente móvel, é recomendável usar taxas de codificação mais 
 // altas para melhorar a confiabilidade.
-#define codingRateDenominator 8
+#define codingRateDenominator 5
 // A tecnologia LoRa usa uma potência de transmissão variável para controlar o alcance
 // e a confiabilidade da transmissão. A potência de transmissão mais alta fornece maior
 // alcance e resistência à interferência, mas pode consumir mais energia e causar problemas
 // de conformidade regulatória. Em um ambiente móvel, é recomendável usar a potência de
 // transmissão mais baixa que forneça comunicação confiável para economizar energia
 // e evitar problemas regulatórios.
-#define txPower 2
+#define txPower 17
 
 String rssi = "RSSI --";
 String snr = "SNR --";
