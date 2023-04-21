@@ -10,7 +10,7 @@ void setup() {
   Serial.print("SCK: ");
   Serial.println(SCK);
   Serial.print("SS: ");
-  Serial.println(SS);  
+  Serial.println(SS);
 }
 
 void loop() {}
