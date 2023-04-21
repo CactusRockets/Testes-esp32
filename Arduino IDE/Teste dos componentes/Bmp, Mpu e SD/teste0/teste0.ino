@@ -35,13 +35,6 @@ void setup() {
   }
 
 
-  if(ENABLE_SD) {
-    if(!SD.begin(CS_PIN)){
-      Serial.println("SD not working ...");
-      while(1);
-    }
-    Serial.println("MicroSD Conectado!");
-  }
 
 
   if (!mpu.begin(MPU_ADRESS)) {
@@ -59,7 +52,7 @@ void setup() {
 
 
 
-
+  /*
   if(!bmp.begin(BMP_ADRESS)) {
     Serial.println("BMP not working ...");
     while(1);
@@ -71,7 +64,18 @@ void setup() {
                   Adafruit_BMP280::SAMPLING_X16,
                   Adafruit_BMP280::FILTER_X16,
                   Adafruit_BMP280::STANDBY_MS_500);
+  */
 
+
+
+
+  if(ENABLE_SD) {
+    if(!SD.begin(CS_PIN)){
+      Serial.println("SD not working ...");
+      while(1);
+    }
+    Serial.println("MicroSD Conectado!");
+  }
 }
 
 

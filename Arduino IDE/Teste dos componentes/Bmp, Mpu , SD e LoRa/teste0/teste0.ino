@@ -9,11 +9,11 @@
 
 #define BMP_ADRESS 0x76
 #define MPU_ADRESS 0x68
-#define CS_PIN_SD 17
+#define CS_PIN_SD 23
 #define CS_PIN_LORA 18
 #define BAND 433E6
 
-#define ENABLE_SERIAL_BEGIN false
+#define ENABLE_SERIAL_BEGIN true
 #define ENABLE_SD true
 #define ENABLE_LORA true
 
@@ -38,7 +38,10 @@ void setup() {
 
   if(ENABLE_SERIAL_BEGIN) {
     Serial.begin(115200);
+    Serial.println("Serial Begins...");
   }
+
+
 
 
   if(ENABLE_SD) {
@@ -49,6 +52,9 @@ void setup() {
     Serial.println("MicroSD Conectado!");
   }
   digitalWrite(CS_PIN_SD, HIGH);
+
+
+
 
 
   if (!mpu.begin(MPU_ADRESS)) {
@@ -81,6 +87,8 @@ void setup() {
 
 
 
+
+
   if(ENABLE_LORA) {
     /* DisplayEnable Enable */
     /* Heltec.LoRa Disable */
@@ -105,12 +113,18 @@ void loop() {
   Serial.println(g.gyro.pitch);
   Serial.println(g.gyro.roll);
 
+
+
+
   digitalWrite(CS_PIN_SD, LOW);
   if(ENABLE_SD) {
     writeSd("Alanzinho" + String(contador));
   }
   digitalWrite(CS_PIN_SD, HIGH);
-  
+
+
+
+
   digitalWrite(CS_PIN_LORA, LOW);
   if(ENABLE_LORA) {
     Serial.print("Sending packet: ");
@@ -134,6 +148,7 @@ void loop() {
     }
   }
   digitalWrite(CS_PIN_LORA, HIGH);
+
 
 
 

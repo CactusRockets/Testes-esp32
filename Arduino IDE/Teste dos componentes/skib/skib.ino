@@ -1,20 +1,30 @@
-#define PIN 12
+#define SKIB1 12
+#define SKIB2 13
+
 #define ENABLE 1
 
 void setup() {
   Serial.begin(115200);
-  pinMode(PIN, OUTPUT);
+  pinMode(SKIB1, OUTPUT);
+  pinMode(SKIB2, OUTPUT);
 }
 
 void loop() {
   float executionTime = millis();
-  
-  if(executionTime >= 15000 && ENABLE) {
-    Serial.println("Ativado");
-    digitalWrite(PIN, HIGH);
+  Serial.println(executionTime);
+
+  if(ENABLE) {
+    if(executionTime >= 30000) {
+      Serial.println("Segundo skib ativado!");
+      digitalWrite(SKIB2, HIGH);
+    } else if (executionTime >= 20000) {
+      Serial.println("Primeiro skib ativado!");
+      digitalWrite(SKIB1, HIGH);
+    } else {
+      Serial.println("Desativado");
+    }
   } else {
     Serial.println("Desativado");
-    digitalWrite(PIN, LOW);
   }
 
   delay(500);
