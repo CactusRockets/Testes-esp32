@@ -27,7 +27,7 @@ void logo() {
   Heltec.display->display();
 }
 
-void setup() {
+void setupDisplay() {
   // WIFI Kit series V1 not support Vext control
 
   /* DisplayEnable Enable */
@@ -50,8 +50,7 @@ void setup() {
   delay(1000);
 }
 
-void loop()
-{
+void updateDisplay() {
   Heltec.display->clear();
   Heltec.display->setTextAlignment(TEXT_ALIGN_LEFT);
   Heltec.display->setFont(ArialMT_Plain_10);
@@ -59,7 +58,9 @@ void loop()
   Heltec.display->drawString(0, 0, "Sending packet: ");
   Heltec.display->drawString(90, 0, String(counter));
   Heltec.display->display();
+}
 
+void sendPacket() {
   Serial.println("Enviando pacotes...");
 
   // Send packet
@@ -78,12 +79,16 @@ void loop()
   LoRa.print("hello ");
   LoRa.print(counter);
   LoRa.endPacket();
+}
 
+void setup() {
+  setupDisplay();
+}
+
+void loop()
+{
+  updateDisplay();
+  sendPacket();
+  
   counter++;
-  // Turn the LED on (HIGH is the voltage level)
-  digitalWrite(LED, HIGH);
-  delay(1000);
-  // Turn the LED off by making the voltage LOW
-  digitalWrite(LED, LOW);
-  delay(1000);
 }

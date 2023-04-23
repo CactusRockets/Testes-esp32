@@ -19,7 +19,6 @@ void loop() {
   } else {
     Serial.println("Desativado");
   }
-
-
+  
   delay(500);
 }

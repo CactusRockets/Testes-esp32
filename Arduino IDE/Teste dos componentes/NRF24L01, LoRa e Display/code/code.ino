@@ -1,10 +1,16 @@
 #include <SPI.h>
 #include "printf.h"
-#include "nRF24L01.h"
 #include "RF24.h"
+#include "nRF24L01.h"
 
-#define CE_PIN 7
-#define CS_PIN 8
+#define SCK_PIN 5
+#define MISO_PIN 19
+#define MOSI_PIN 27
+#define CS_PIN 23
+
+#define CE_PIN 2
+
+SPIClass spi(VSPI);
 
 // instantiate an object for the nRF24L01 transceiver
 RF24 radio(CE_PIN, CS_PIN);
@@ -21,15 +27,90 @@ bool radioNumber = 1;
 
 // Used to control whether this node is sending or receiving
 // true = TX role, false = RX role
-bool role = false;
+bool role = true;
 
 // For this example, we'll be using a payload containing
 // a single float number that will be incremented
 // on every successful transmission
 float payload = 0.0;
 
+/* CONFIGURAÇÕES PARA O USO DO LORA E DO DISPLAY */
+#include "heltec.h"
+#include "images.h"
+
+#define BAND 433E6
+#define CS_LORAPIN 18
+
+unsigned int counter = 0;
+String rssi = "RSSI --";
+String packSize = "--";
+String packet;
+
+void logo() {
+  Heltec.display->clear();
+  Heltec.display->drawXbm(0,5,logo_width,logo_height,logo_bits);
+  Heltec.display->display();
+}
+
+void setupDisplay() {
+  // WIFI Kit series V1 not support Vext control
+
+  /* DisplayEnable Enable */
+  /* Heltec.LoRa Disable */
+  /* Serial Enable */
+  /* PABOOST Enable */
+  /* long BAND */
+  Heltec.begin(true, true, true, true, BAND);
+ 
+  Heltec.display->init();
+  Heltec.display->flipScreenVertically();  
+  Heltec.display->setFont(ArialMT_Plain_10);
+  
+  logo();
+  delay(1500);
+  Heltec.display->clear();
+  
+  Heltec.display->drawString(0, 0, "Heltec.LoRa Initial success!");
+  Heltec.display->display();
+  delay(1000);
+}
+
+void updateDisplay() {
+  Heltec.display->clear();
+  Heltec.display->setTextAlignment(TEXT_ALIGN_LEFT);
+  Heltec.display->setFont(ArialMT_Plain_10);
+  
+  Heltec.display->drawString(0, 0, "Sending packet: ");
+  Heltec.display->drawString(90, 0, String(counter));
+  Heltec.display->display();
+}
+
+void sendPacket() {
+  Serial.println("Enviando pacotes...");
+
+  // Send packet
+  LoRa.beginPacket();
+
+  /*
+   * LoRa.setTxPower(txPower, RFOUT_pin);
+   * txPower -- 0 ~ 20
+   * RFOUT_pin could be RF_PACONFIG_PASELECT_PABOOST or RF_PACONFIG_PASELECT_RFO
+   *   - RF_PACONFIG_PASELECT_PABOOST
+   *        LoRa single output via PABOOST, maximum output 20dBm
+   *   - RF_PACONFIG_PASELECT_RFO
+   *        LoRa single output via RFO_HF / RFO_LF, maximum output 14dBm
+  */
+  LoRa.setTxPower(14,RF_PACONFIG_PASELECT_PABOOST);
+  LoRa.print("hello ");
+  LoRa.print(counter);
+  LoRa.endPacket();
+}
+
 void setup() {
   pinMode(CS_PIN, OUTPUT);
+  digitalWrite(CS_PIN, HIGH);
+
+  spi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_PIN);
 
   Serial.begin(115200);
   while (!Serial) {
@@ -37,6 +118,7 @@ void setup() {
   }
 
   // initialize the transceiver on the SPI bus
+  delay(100);
   if (!radio.begin()) {
     Serial.println(F("radio hardware is not responding!!"));
     // hold in infinite loop
@@ -59,6 +141,7 @@ void setup() {
   // role variable is hardcoded to RX behavior, inform the user of this
   Serial.println(F("*** PRESS 'T' to begin transmitting to the other node"));
 
+  delay(100);
   // Set the PA Level low to try preventing power supply related problems
   // because these examples are likely run with nodes in close proximity to
   // each other.
@@ -72,27 +155,31 @@ void setup() {
 
   // set the TX address of the RX node into the TX pipe
   // always uses pipe 0
-  radio.openWritingPipe(address[radioNumber]);
+  radio.openWritingPipe(address[radioNumber]);     
 
   // set the RX address of the TX node into a RX pipe
   // using pipe 1
-  radio.openReadingPipe(1, address[!radioNumber]);
+  radio.openReadingPipe(1, address[!radioNumber]); 
 
   // additional setup specific to the node's role
   if (role) {
     // put radio in TX mode
-    radio.stopListening();
+    radio.stopListening();  
   } else {
     // put radio in RX mode
-    radio.startListening();
+    radio.startListening(); 
   }
+
+  setupDisplay();
 }
 
 void loop() {
 
+  digitalWrite(CS_PIN, LOW);
   if (role) {
     // This device is a TX node
 
+    delay(100);
     unsigned long start_timer = micros();                    // start the timer
     bool report = radio.write(&payload, sizeof(float));      // transmit & save the report
     unsigned long end_timer = micros();                      // end the timer
@@ -115,6 +202,7 @@ void loop() {
   } else {
     // This device is a RX node
 
+    delay(100);
     uint8_t pipe;
     if (radio.available(&pipe)) {             // is there a payload? get the pipe number that recieved it
       uint8_t bytes = radio.getPayloadSize(); // get the size of the payload
@@ -147,4 +235,11 @@ void loop() {
       radio.startListening();
     }
   }
+  digitalWrite(CS_PIN, HIGH);
+  
+  
+  digitalWrite(CS_LORAPIN, LOW);
+  updateDisplay();
+  sendPacket();
+  digitalWrite(CS_LORAPIN, HIGH);
 }
