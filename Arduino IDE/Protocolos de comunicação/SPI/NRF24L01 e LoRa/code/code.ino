@@ -6,14 +6,14 @@
 #define SCK_PIN 5
 #define MISO_PIN 19
 #define MOSI_PIN 27
-#define CS_PIN 23
+#define CS_NRFPIN 23
 
 #define CE_PIN 2
 
 SPIClass spi(VSPI);
 
 // instantiate an object for the nRF24L01 transceiver
-RF24 radio(CE_PIN, CS_PIN);
+RF24 radio(CE_PIN, CS_NRFPIN);
 
 // Let these addresses be used for the pair
 uint8_t address[][6] = {"1Node", "2Node"};
@@ -34,25 +34,16 @@ bool role = true;
 // on every successful transmission
 float payload = 0.0;
 
-/* CONFIGURAÇÕES PARA O USO DO LORA E DO DISPLAY */
+/* CONFIGURAÇÕES PARA O USO DO LORA */
 #include "heltec.h"
-#include "images.h"
-
 #define BAND 433E6
 #define CS_LORAPIN 18
 
-unsigned int counter = 0;
-String rssi = "RSSI --";
-String packSize = "--";
-String packet;
+int contador = 0;
+int success = 0;
+int lengthOfBytesWritten = 0;
 
-void logo() {
-  Heltec.display->clear();
-  Heltec.display->drawXbm(0,5,logo_width,logo_height,logo_bits);
-  Heltec.display->display();
-}
-
-void setupDisplay() {
+void setupLoRa() {
   // WIFI Kit series V1 not support Vext control
 
   /* DisplayEnable Enable */
@@ -61,57 +52,32 @@ void setupDisplay() {
   /* PABOOST Enable */
   /* long BAND */
   Heltec.begin(true, true, true, true, BAND);
- 
-  Heltec.display->init();
-  Heltec.display->flipScreenVertically();  
-  Heltec.display->setFont(ArialMT_Plain_10);
-  
-  logo();
-  delay(1500);
-  Heltec.display->clear();
-  
-  Heltec.display->drawString(0, 0, "Heltec.LoRa Initial success!");
-  Heltec.display->display();
-  delay(1000);
-}
-
-void updateDisplay() {
-  Heltec.display->clear();
-  Heltec.display->setTextAlignment(TEXT_ALIGN_LEFT);
-  Heltec.display->setFont(ArialMT_Plain_10);
-  
-  Heltec.display->drawString(0, 0, "Sending packet: ");
-  Heltec.display->drawString(90, 0, String(counter));
-  Heltec.display->display();
+  Serial.println("LoRa inicializado!");
 }
 
 void sendPacket() {
-  Serial.println("Enviando pacotes...");
+  Serial.print("Sending packet: ");
+  Serial.println(contador);
 
-  // Send packet
-  LoRa.beginPacket();
+  success = LoRa.beginPacket();
+  if(success) {
+    Serial.println("Inicialização do pacote concluída");
+  }
+  
+  LoRa.setTxPower(14, RF_PACONFIG_PASELECT_PABOOST);
+  
+  lengthOfBytesWritten = LoRa.print("hello ");
+  Serial.println("Bytes escritos:" + String(lengthOfBytesWritten));
+  lengthOfBytesWritten = LoRa.print(contador);
+  Serial.println("Bytes escritos:" + String(lengthOfBytesWritten));
 
-  /*
-   * LoRa.setTxPower(txPower, RFOUT_pin);
-   * txPower -- 0 ~ 20
-   * RFOUT_pin could be RF_PACONFIG_PASELECT_PABOOST or RF_PACONFIG_PASELECT_RFO
-   *   - RF_PACONFIG_PASELECT_PABOOST
-   *        LoRa single output via PABOOST, maximum output 20dBm
-   *   - RF_PACONFIG_PASELECT_RFO
-   *        LoRa single output via RFO_HF / RFO_LF, maximum output 14dBm
-  */
-  LoRa.setTxPower(14,RF_PACONFIG_PASELECT_PABOOST);
-  LoRa.print("hello ");
-  LoRa.print(counter);
-  LoRa.endPacket();
+  success = LoRa.endPacket();
+  if(success) {
+    Serial.println("Finalização do pacote concluída");
+  }
 }
 
-void setup() {
-  pinMode(CS_PIN, OUTPUT);
-  digitalWrite(CS_PIN, HIGH);
-
-  spi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_PIN);
-
+void setupNRF() {
   Serial.begin(115200);
   while (!Serial) {
     // some boards need to wait to ensure access to serial over USB
@@ -120,9 +86,9 @@ void setup() {
   // initialize the transceiver on the SPI bus
   delay(100);
   if (!radio.begin()) {
+    
     Serial.println(F("radio hardware is not responding!!"));
-    // hold in infinite loop
-    while (1) {}
+    Serial.println(F("NRF24L01 NÃO CONFIGURADO!\n"));
   }
 
   // print example's introductory prompt
@@ -169,13 +135,9 @@ void setup() {
     // put radio in RX mode
     radio.startListening(); 
   }
-
-  setupDisplay();
 }
 
-void loop() {
-
-  digitalWrite(CS_PIN, LOW);
+void updateNRF() {
   if (role) {
     // This device is a TX node
 
@@ -235,11 +197,31 @@ void loop() {
       radio.startListening();
     }
   }
-  digitalWrite(CS_PIN, HIGH);
+}
+
+void setup() {
+  pinMode(CS_NRFPIN, OUTPUT);
+  pinMode(CS_LORAPIN, OUTPUT);
+  spi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_NRFPIN);
+
+  setupNRF();
+  digitalWrite(CS_NRFPIN, HIGH);
   
+  setupLoRa();
+  digitalWrite(CS_LORAPIN, HIGH);
+}
+
+void loop() {
+
+  digitalWrite(CS_NRFPIN, LOW);
+  delay(100);
+  updateNRF();
+  digitalWrite(CS_NRFPIN, HIGH);
   
   digitalWrite(CS_LORAPIN, LOW);
-  updateDisplay();
+  delay(100);
   sendPacket();
   digitalWrite(CS_LORAPIN, HIGH);
+
+  contador++;
 }
