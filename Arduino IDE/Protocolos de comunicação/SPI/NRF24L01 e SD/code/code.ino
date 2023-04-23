@@ -41,47 +41,31 @@ bool role = true;
 // on every successful transmission
 float payload = 0.0;
 
-/* CONFIGURAÇÕES PARA O USO DO LORA */
-#include "heltec.h"
-#define BAND 433E6
-#define CS_LORAPIN 18
+/* CONFIGURAÇÕES PARA O USO DO CARTÃO SD */
+#include <SD.h>
 
+#define CS_SDPIN 12
+
+File logfile;
 int contador = 0;
-int success = 0;
-int lengthOfBytesWritten = 0;
 
-void setupLoRa() {
-  // WIFI Kit series V1 not support Vext control
-
-  /* DisplayEnable Enable */
-  /* Heltec.LoRa Disable */
-  /* Serial Enable */
-  /* PABOOST Enable */
-  /* long BAND */
-  Heltec.begin(false, true, true, true, BAND);
-  Serial.println("LoRa inicializado!");
+void writeSd(String text){
+  logfile = SD.open("/meulog.txt", FILE_APPEND);
+  if(logfile){
+    logfile.println(text);
+    Serial.println("Gravando...");
+    logfile.close();
+  } else {
+    Serial.println("Não foi possível gravar...");
+  }
 }
 
-void sendPacket() {
-  Serial.print("Sending packet: ");
-  Serial.println(contador);
-
-  success = LoRa.beginPacket();
-  if(success) {
-    Serial.println("Inicialização do pacote concluída");
+void setupSD() {
+if(!SD.begin(CS_SDPIN)){
+    Serial.println("SD not working ...");
+    while(1);
   }
-  
-  LoRa.setTxPower(14, RF_PACONFIG_PASELECT_PABOOST);
-  
-  lengthOfBytesWritten = LoRa.print("hello ");
-  Serial.println("Bytes escritos:" + String(lengthOfBytesWritten));
-  lengthOfBytesWritten = LoRa.print(contador);
-  Serial.println("Bytes escritos:" + String(lengthOfBytesWritten));
-
-  success = LoRa.endPacket();
-  if(success) {
-    Serial.println("Finalização do pacote concluída");
-  }
+  Serial.println("MicroSD Conectado!");
 }
 
 void setupNRF() {
@@ -210,21 +194,21 @@ void updateNRF() {
 void setup() {
   /*
   vspi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_NRFPIN);
-  hspi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_LORAPIN);
+  hspi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_SDPIN);
   */
   
   pinMode(CS_NRFPIN, OUTPUT);
-  pinMode(CS_LORAPIN, OUTPUT);
+  pinMode(CS_SDPIN, OUTPUT);
 
   digitalWrite(CS_NRFPIN, LOW);
   delay(100);
   setupNRF();
   digitalWrite(CS_NRFPIN, HIGH);
 
-  digitalWrite(CS_LORAPIN, LOW);
+  digitalWrite(CS_SDPIN, LOW);
   delay(100);
-  setupLoRa();
-  digitalWrite(CS_LORAPIN, HIGH);
+  setupSD();
+  digitalWrite(CS_SDPIN, HIGH);
 }
 
 void loop() {
@@ -234,10 +218,11 @@ void loop() {
   updateNRF();
   digitalWrite(CS_NRFPIN, HIGH);
 
-  digitalWrite(CS_LORAPIN, LOW);
+  digitalWrite(CS_SDPIN, LOW);
   delay(100);
-  sendPacket();
-  digitalWrite(CS_LORAPIN, HIGH);
+  writeSd("Alanzinho" + String(contador));
+  digitalWrite(CS_SDPIN, HIGH);
 
   contador++;
+  delay(300);
 }
