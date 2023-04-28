@@ -1,26 +1,13 @@
 #include <SPI.h>
 #include "printf.h"
-#include "RF24.h"
 #include "nRF24L01.h"
+#include "RF24.h"
 
-#define SCK_PIN 18
-#define MISO_PIN 19
-#define MOSI_PIN 23
-
-#define CS_NRFPIN 12
-#define CE_PIN 2
-
-
-
-SPIClass vspi(VSPI);
-/*
-SPIClass hspi(HSPI);
-*/
-
-
+#define CE_PIN 7
+#define CS_PIN 8
 
 // instantiate an object for the nRF24L01 transceiver
-RF24 radio(CE_PIN, CS_NRFPIN);
+RF24 radio(CE_PIN, CS_PIN);
 
 // Let these addresses be used for the pair
 uint8_t address[][6] = {"1Node", "2Node"};
@@ -34,53 +21,26 @@ bool radioNumber = 1;
 
 // Used to control whether this node is sending or receiving
 // true = TX role, false = RX role
-bool role = true;
+bool role = false;
 
 // For this example, we'll be using a payload containing
 // a single float number that will be incremented
 // on every successful transmission
 float payload = 0.0;
 
-/* CONFIGURAÇÕES PARA O USO DO CARTÃO SD */
-#include <SD.h>
+void setup() {
+  pinMode(CS_PIN, OUTPUT);
 
-#define CS_SDPIN 5
-
-File logfile;
-int contador = 0;
-
-void writeSd(String text){
-  logfile = SD.open("/meulog.txt", FILE_APPEND);
-  if(logfile){
-    logfile.println(text);
-    Serial.println("Gravando...");
-    logfile.close();
-  } else {
-    Serial.println("Não foi possível gravar...");
-  }
-}
-
-void setupSD() {
-if(!SD.begin(CS_SDPIN)){
-    Serial.println("SD not working ...");
-    while(1);
-  }
-  Serial.println("MicroSD Conectado!");
-}
-
-void setupNRF() {
   Serial.begin(115200);
   while (!Serial) {
     // some boards need to wait to ensure access to serial over USB
   }
 
   // initialize the transceiver on the SPI bus
-  delay(100);
-  while(!radio.begin()) {
-    
-    Serial.println(F("Radio hardware is not responding!!"));
-    Serial.println(F("NRF24L01 NÃO CONFIGURADO!\n"));
-    delay(100);
+  if (!radio.begin()) {
+    Serial.println(F("radio hardware is not responding!!"));
+    // hold in infinite loop
+    while (1) {}
   }
 
   // print example's introductory prompt
@@ -99,7 +59,6 @@ void setupNRF() {
   // role variable is hardcoded to RX behavior, inform the user of this
   Serial.println(F("*** PRESS 'T' to begin transmitting to the other node"));
 
-  delay(100);
   // Set the PA Level low to try preventing power supply related problems
   // because these examples are likely run with nodes in close proximity to
   // each other.
@@ -113,27 +72,27 @@ void setupNRF() {
 
   // set the TX address of the RX node into the TX pipe
   // always uses pipe 0
-  radio.openWritingPipe(address[radioNumber]);     
+  radio.openWritingPipe(address[radioNumber]);
 
   // set the RX address of the TX node into a RX pipe
   // using pipe 1
-  radio.openReadingPipe(1, address[!radioNumber]); 
+  radio.openReadingPipe(1, address[!radioNumber]);
 
   // additional setup specific to the node's role
   if (role) {
     // put radio in TX mode
-    radio.stopListening();  
+    radio.stopListening();
   } else {
     // put radio in RX mode
-    radio.startListening(); 
+    radio.startListening();
   }
 }
 
-void updateNRF() {
+void loop() {
+
   if (role) {
     // This device is a TX node
 
-    delay(100);
     unsigned long start_timer = micros();                    // start the timer
     bool report = radio.write(&payload, sizeof(float));      // transmit & save the report
     unsigned long end_timer = micros();                      // end the timer
@@ -156,7 +115,6 @@ void updateNRF() {
   } else {
     // This device is a RX node
 
-    delay(100);
     uint8_t pipe;
     if (radio.available(&pipe)) {             // is there a payload? get the pipe number that recieved it
       uint8_t bytes = radio.getPayloadSize(); // get the size of the payload
@@ -189,40 +147,4 @@ void updateNRF() {
       radio.startListening();
     }
   }
-}
-
-void setup() {
-  /*
-  vspi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_NRFPIN);
-  hspi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_SDPIN);
-  */
-  
-  pinMode(CS_NRFPIN, OUTPUT);
-  pinMode(CS_SDPIN, OUTPUT);
-
-  digitalWrite(CS_NRFPIN, LOW);
-  delay(100);
-  setupNRF();
-  digitalWrite(CS_NRFPIN, HIGH);
-
-  digitalWrite(CS_SDPIN, LOW);
-  delay(100);
-  setupSD();
-  digitalWrite(CS_SDPIN, HIGH);
-}
-
-void loop() {
-
-  digitalWrite(CS_NRFPIN, LOW);
-  delay(100);
-  updateNRF();
-  digitalWrite(CS_NRFPIN, HIGH);
-
-  digitalWrite(CS_SDPIN, LOW);
-  delay(100);
-  writeSd("Alanzinho" + String(contador));
-  digitalWrite(CS_SDPIN, HIGH);
-
-  contador++;
-  delay(300);
 }

@@ -1,3 +1,18 @@
+#define ENABLE_BMP true
+#define ENABLE_MPU true
+#define ENABLE_SD true
+#define ENABLE_NRF true
+#define ENABLE_SKIB true
+
+
+
+
+#define SKIB1 16
+#define SKIB2 17
+
+
+
+
 #include <SPI.h>
 #include "printf.h"
 #include "RF24.h"
@@ -13,13 +28,12 @@
 
 
 SPIClass vspi(VSPI);
-/*
 SPIClass hspi(HSPI);
-*/
 
 
 
-// instantiate an object for the nRF24L01 transceiver
+
+// instantiate an object contadorfor the nRF24L01 transceiver
 RF24 radio(CE_PIN, CS_NRFPIN);
 
 // Let these addresses be used for the pair
@@ -49,8 +63,98 @@ float payload = 0.0;
 File logfile;
 int contador = 0;
 
+
+/* CONFIGURAÇÕES PARA O USO DO BMP e MPU */
+#include "Arduino.h"
+
+#include <Wire.h>
+#include <Adafruit_BMP280.h>
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+
+#define BMP_ADRESS 0x76
+#define MPU_ADRESS 0x68
+
+Adafruit_BMP280 bmp;
+Adafruit_MPU6050 mpu;
+
+
+/* FUNÇÕES SKIB */
+void setupSkib() {
+  pinMode(SKIB1, OUTPUT);
+  pinMode(SKIB2, OUTPUT);
+}
+
+void executeSkib() {
+  if(contador >= 150) {
+    Serial.println("Primeiro skib ativado!");
+    digitalWrite(SKIB1, HIGH);
+    Serial.println("Segundo skib ativado!");
+    digitalWrite(SKIB2, HIGH);
+  } else {
+    Serial.println("Skibs desativados!");
+  }
+}
+
+/* FUNÇÕES BMP280 */
+void setupBMP() {
+  if(!bmp.begin(BMP_ADRESS)) {
+    Serial.println("BMP not working ...");
+    while(1);
+  }
+  Serial.println("BMP conectado!");
+
+  bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,
+                  Adafruit_BMP280::SAMPLING_X2,
+                  Adafruit_BMP280::SAMPLING_X16,
+                  Adafruit_BMP280::FILTER_X16,
+                  Adafruit_BMP280::STANDBY_MS_500);
+}
+
+String testBMP() {
+  float number = bmp.readAltitude(1013);
+  Serial.println("---------------------------------");
+  Serial.println(String("BMP:") + String(number));
+  Serial.println("---------------------------------");
+
+  return String(number);
+}
+
+/* FUNÇÕES MPU6050 */
+void setupMPU() {
+  if (!mpu.begin(MPU_ADRESS)) {
+    Serial.println("Failed to find MPU6050 chip");
+    while (1) {
+      delay(100);
+    }
+  }
+  Serial.println("MPU6050 Found!");
+
+  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+  mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+}
+
+String testMPU() {
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
+  
+  Serial.println("---------------------------------");
+  Serial.println("MPU:");
+  Serial.println(a.acceleration.v[0]);
+  Serial.println(a.acceleration.v[1]);
+  Serial.println(a.acceleration.v[2]);
+  Serial.println(a.acceleration.z);
+  Serial.println(g.gyro.pitch);
+  Serial.println(g.gyro.roll);
+  Serial.println("---------------------------------");
+
+  return String(a.acceleration.v[0]) + "," + String(a.acceleration.v[1]) + "," + String(a.acceleration.v[2]);
+}
+
+/* FUNÇÕES CARTÃO MICROSD */
 void writeSd(String text){
-  logfile = SD.open("/meulog.txt", FILE_APPEND);
+  logfile = SD.open("/dados.txt", FILE_APPEND);
   if(logfile){
     logfile.println(text);
     Serial.println("Gravando...");
@@ -66,14 +170,19 @@ if(!SD.begin(CS_SDPIN)){
     while(1);
   }
   Serial.println("MicroSD Conectado!");
+  logfile = SD.open("/dados.txt", FILE_APPEND);
+
+  if(logfile){
+    logfile.println("Gravando...");
+    Serial.println("Gravando...");
+    logfile.close();
+  } else {
+    Serial.println("Não foi possível gravar...");
+  }
 }
 
+/* FUNÇÕES NRF */
 void setupNRF() {
-  Serial.begin(115200);
-  while (!Serial) {
-    // some boards need to wait to ensure access to serial over USB
-  }
-
   // initialize the transceiver on the SPI bus
   delay(100);
   while(!radio.begin()) {
@@ -88,10 +197,9 @@ void setupNRF() {
 
   // To set the radioNumber via the Serial monitor on startup
   Serial.println(F("Which radio is this? Enter '0' or '1'. Defaults to '0'"));
-  while (!Serial.available()) {
-    // wait for user input
-  }
-  char input = Serial.parseInt();
+  Serial.println(F("Radio 0."));
+  
+  char input = 0;
   radioNumber = input == 1;
   Serial.print(F("radioNumber = "));
   Serial.println((int)radioNumber);
@@ -132,8 +240,6 @@ void setupNRF() {
 void updateNRF() {
   if (role) {
     // This device is a TX node
-
-    delay(100);
     unsigned long start_timer = micros();                    // start the timer
     bool report = radio.write(&payload, sizeof(float));      // transmit & save the report
     unsigned long end_timer = micros();                      // end the timer
@@ -142,21 +248,16 @@ void updateNRF() {
       Serial.print(F("Transmission successful! "));          // payload was delivered
       Serial.print(F("Time to transmit = "));
       Serial.print(end_timer - start_timer);                 // print the timer result
-      Serial.print(F(" us. Sent: "));
-      Serial.println(payload);                               // print payload sent
+      Serial.println(F(" us."));
+      
+      Serial.println("Pacote:" + String(payload));           // print payload sent
       payload += 0.01;                                       // increment float payload
     } else {
       Serial.println(F("Transmission failed or timed out")); // payload was not delivered
     }
 
-    // to make this example readable in the serial monitor
-    // slow transmissions down by 1 second
-    delay(1000);
-
   } else {
     // This device is a RX node
-
-    delay(100);
     uint8_t pipe;
     if (radio.available(&pipe)) {             // is there a payload? get the pipe number that recieved it
       uint8_t bytes = radio.getPayloadSize(); // get the size of the payload
@@ -164,8 +265,9 @@ void updateNRF() {
       Serial.print(F("Received "));
       Serial.print(bytes);                    // print the size of the payload
       Serial.print(F(" bytes on pipe "));
-      Serial.print(pipe);                     // print the pipe number
-      Serial.print(F(": "));
+      Serial.println(pipe);                   // print the pipe number
+      
+      Serial.print(F("Pacote:"));
       Serial.println(payload);                // print the payload's value
     }
   }
@@ -191,7 +293,14 @@ void updateNRF() {
   }
 }
 
+
+
+
+
 void setup() {
+  Serial.begin(115200);
+  while (!Serial) {}
+  
   /*
   vspi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_NRFPIN);
   hspi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_SDPIN);
@@ -199,30 +308,67 @@ void setup() {
   
   pinMode(CS_NRFPIN, OUTPUT);
   pinMode(CS_SDPIN, OUTPUT);
+  
+  if(ENABLE_NRF) {
+    digitalWrite(CS_NRFPIN, LOW);
+    setupNRF();
+    digitalWrite(CS_NRFPIN, HIGH);
+  }
 
-  digitalWrite(CS_NRFPIN, LOW);
-  delay(100);
-  setupNRF();
-  digitalWrite(CS_NRFPIN, HIGH);
+  if(ENABLE_SD) {
+    digitalWrite(CS_SDPIN, LOW);
+    setupSD();
+    digitalWrite(CS_SDPIN, HIGH);
+  }
 
-  digitalWrite(CS_SDPIN, LOW);
-  delay(100);
-  setupSD();
-  digitalWrite(CS_SDPIN, HIGH);
+  if(ENABLE_BMP) {
+    setupBMP();
+  }
+
+  if(ENABLE_MPU) {
+    setupMPU();
+  }
+
+  if(ENABLE_SKIB) {
+    setupSkib();
+  }
 }
 
 void loop() {
+  String infoBMP;
+  String infoMPU;
+  
+  Serial.println(String("Contador: ") + String(contador));
+  
+  if(ENABLE_BMP) {
+    infoBMP = testBMP();
+  }
 
-  digitalWrite(CS_NRFPIN, LOW);
-  delay(100);
-  updateNRF();
-  digitalWrite(CS_NRFPIN, HIGH);
+  if(ENABLE_MPU) {
+    infoMPU = testMPU();
+  }
 
-  digitalWrite(CS_SDPIN, LOW);
-  delay(100);
-  writeSd("Alanzinho" + String(contador));
-  digitalWrite(CS_SDPIN, HIGH);
+  /*
+  payload = contador;
+  payload = String("0000,0000,0000,0000,0000,0000");
+  */
 
+  if(ENABLE_NRF) {
+    digitalWrite(CS_NRFPIN, LOW);
+    updateNRF();
+    digitalWrite(CS_NRFPIN, HIGH);
+  }
+
+  if(ENABLE_SD) {
+    digitalWrite(CS_SDPIN, LOW);
+    writeSd(infoBMP + infoMPU);
+    digitalWrite(CS_SDPIN, HIGH);
+  }
+  
+  if(ENABLE_SKIB) {
+    executeSkib();
+  }
+  
   contador++;
-  delay(300);
+  delay(250);
 }

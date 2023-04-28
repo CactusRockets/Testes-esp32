@@ -1,3 +1,10 @@
+#define ENABLE_BMP true
+#define ENABLE_MPU true
+#define ENABLE_SD true
+#define ENABLE_NRF true
+
+
+
 #include <SPI.h>
 #include "printf.h"
 #include "RF24.h"
@@ -13,13 +20,12 @@
 
 
 SPIClass vspi(VSPI);
-/*
 SPIClass hspi(HSPI);
-*/
 
 
 
-// instantiate an object for the nRF24L01 transceiver
+
+// instantiate an object contadorfor the nRF24L01 transceiver
 RF24 radio(CE_PIN, CS_NRFPIN);
 
 // Let these addresses be used for the pair
@@ -49,8 +55,77 @@ float payload = 0.0;
 File logfile;
 int contador = 0;
 
+
+/* CONFIGURAÇÕES PARA O USO DO BMP e MPU */
+#include "Arduino.h"
+
+#include <Wire.h>
+#include <Adafruit_BMP280.h>
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+
+#define BMP_ADRESS 0x76
+#define MPU_ADRESS 0x68
+
+Adafruit_BMP280 bmp;
+Adafruit_MPU6050 mpu;
+
+
+/* FUNÇÕES BMP280 */
+void setupBMP() {
+  if(!bmp.begin(BMP_ADRESS)) {
+    Serial.println("BMP not working ...");
+    while(1);
+  }
+  Serial.println("BMP conectado!");
+
+  bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,
+                  Adafruit_BMP280::SAMPLING_X2,
+                  Adafruit_BMP280::SAMPLING_X16,
+                  Adafruit_BMP280::FILTER_X16,
+                  Adafruit_BMP280::STANDBY_MS_500);
+}
+
+void testBMP() {
+  float number = bmp.readAltitude(1013);
+  Serial.println("---------------------------------");
+  Serial.println(String("BMP:") + String(number));
+  Serial.println("---------------------------------");
+}
+
+/* FUNÇÕES MPU6050 */
+void setupMPU() {
+  if (!mpu.begin(MPU_ADRESS)) {
+    Serial.println("Failed to find MPU6050 chip");
+    while (1) {
+      delay(100);
+    }
+  }
+  Serial.println("MPU6050 Found!");
+
+  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+  mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+}
+
+void testMPU() {
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
+  
+  Serial.println("---------------------------------");
+  Serial.println("MPU:");
+  Serial.println(a.acceleration.v[0]);
+  Serial.println(a.acceleration.v[1]);
+  Serial.println(a.acceleration.v[2]);
+  Serial.println(a.acceleration.z);
+  Serial.println(g.gyro.pitch);
+  Serial.println(g.gyro.roll);
+  Serial.println("---------------------------------");
+}
+
+/* FUNÇÕES CARTÃO MICROSD */
 void writeSd(String text){
-  logfile = SD.open("/meulog.txt", FILE_APPEND);
+  logfile = SD.open("/teste.txt", FILE_APPEND);
   if(logfile){
     logfile.println(text);
     Serial.println("Gravando...");
@@ -68,12 +143,8 @@ if(!SD.begin(CS_SDPIN)){
   Serial.println("MicroSD Conectado!");
 }
 
+/* FUNÇÕES NRF */
 void setupNRF() {
-  Serial.begin(115200);
-  while (!Serial) {
-    // some boards need to wait to ensure access to serial over USB
-  }
-
   // initialize the transceiver on the SPI bus
   delay(100);
   while(!radio.begin()) {
@@ -132,8 +203,6 @@ void setupNRF() {
 void updateNRF() {
   if (role) {
     // This device is a TX node
-
-    delay(100);
     unsigned long start_timer = micros();                    // start the timer
     bool report = radio.write(&payload, sizeof(float));      // transmit & save the report
     unsigned long end_timer = micros();                      // end the timer
@@ -150,8 +219,7 @@ void updateNRF() {
     }
 
     // to make this example readable in the serial monitor
-    // slow transmissions down by 1 second
-    delay(1000);
+    delay(100);
 
   } else {
     // This device is a RX node
@@ -191,7 +259,14 @@ void updateNRF() {
   }
 }
 
+
+
+
+
 void setup() {
+  Serial.begin(115200);
+  while (!Serial) {}
+  
   /*
   vspi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_NRFPIN);
   hspi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_SDPIN);
@@ -199,30 +274,55 @@ void setup() {
   
   pinMode(CS_NRFPIN, OUTPUT);
   pinMode(CS_SDPIN, OUTPUT);
+  
+  if(ENABLE_NRF) {
+    digitalWrite(CS_NRFPIN, LOW);
+    delay(100);
+    setupNRF();
+    digitalWrite(CS_NRFPIN, HIGH);
+  }
 
-  digitalWrite(CS_NRFPIN, LOW);
-  delay(100);
-  setupNRF();
-  digitalWrite(CS_NRFPIN, HIGH);
+  if(ENABLE_SD) {
+    digitalWrite(CS_SDPIN, LOW);
+    delay(100);
+    setupSD();
+    digitalWrite(CS_SDPIN, HIGH);
+  }
 
-  digitalWrite(CS_SDPIN, LOW);
-  delay(100);
-  setupSD();
-  digitalWrite(CS_SDPIN, HIGH);
+  if(ENABLE_BMP) {
+    setupBMP();
+  }
+
+  if(ENABLE_MPU) {
+    setupMPU();
+  }
 }
 
 void loop() {
+  
+  if(ENABLE_NRF) {
+    digitalWrite(CS_NRFPIN, LOW);
+    delay(100);
+    updateNRF();
+    digitalWrite(CS_NRFPIN, HIGH);
+  }
 
-  digitalWrite(CS_NRFPIN, LOW);
-  delay(100);
-  updateNRF();
-  digitalWrite(CS_NRFPIN, HIGH);
+  if(ENABLE_SD) {
+    digitalWrite(CS_SDPIN, LOW);
+    delay(100);
+    writeSd("Alanzinho" + String(contador));
+    digitalWrite(CS_SDPIN, HIGH);
+  }
 
-  digitalWrite(CS_SDPIN, LOW);
-  delay(100);
-  writeSd("Alanzinho" + String(contador));
-  digitalWrite(CS_SDPIN, HIGH);
+  if(ENABLE_BMP) {
+    testBMP();
+  }
 
+  if(ENABLE_MPU) {
+    testMPU();
+  }
+
+  
   contador++;
-  delay(300);
+  delay(100);
 }
