@@ -1,3 +1,5 @@
+/* COMFIGURAÇÕES FILTRO DE KALMAN */
+
 #ifndef _KalmanAltitude_h
 #define _KalmanAltitude_h
 
