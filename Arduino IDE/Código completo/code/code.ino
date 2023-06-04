@@ -15,24 +15,22 @@
 #define MISO_PIN 19
 #define MOSI_PIN 23
 
-#define CS_NRFPIN 12
-#define CE_PIN 2
-
-SPIClass vspi(VSPI);
-SPIClass hspi(HSPI);
+#define CE_PIN 12
+#define CS_NRFPIN 2
 
 RF24 radio(CE_PIN, CS_NRFPIN);
 
-
-// ANALISAR
+// ANALISADO
 uint8_t address[][6] = {"1Node", "2Node"};
-bool radioNumber = 1;
+bool radioNumber = 0;
 
 
 
 // Usado para controlar funcionalidade do módulo rádio
 // True = Tx role, False = RX role
 bool role = true;
+
+// ANALISAR
 String payload = "000000,000000";
 bool payloadReceived = false;
 
@@ -44,14 +42,25 @@ void setupNRF() {
     Serial.println(F("Radio hardware is not responding!!"));
     delay(100);
   }
+  delay(100);
 
   // ANALISAR
-  delay(100);
   radio.setPALevel(RF24_PA_LOW);
   radio.setPayloadSize(sizeof(payload));
+
+  // ANALISADO
   radio.openWritingPipe(address[radioNumber]);     
   radio.openReadingPipe(1, address[!radioNumber]); 
 
+  if(role) {
+    radio.stopListening();  
+  } else {
+    radio.startListening(); 
+  }
+}
+
+void changeRoleNRF(bool functionNRF) {
+  role = functionNRF;
   if(role) {
     radio.stopListening();  
   } else {
@@ -64,7 +73,7 @@ void updateNRF() {
   radio.setPayloadSize(sizeof(payload));
   
   if(role) {
-    // Funcionalidade de transmissor
+    // Funcionalidade do transmissor
 
     unsigned long start_timer = micros();                 
     bool report = radio.write(&payload, sizeof(payload));
@@ -76,13 +85,13 @@ void updateNRF() {
       Serial.print(end_timer - start_timer);
       Serial.println(F("us"));
 
-      Serial.println("Pacote:" + String(payload));
+      Serial.println("Pacote: " + String(payload));
     } else {
       Serial.println(F("Transmission failed or timed out"));
     }
 
   } else {
-    // Funcionalidade de receptor
+    // Funcionalidade do receptor
     
     uint8_t pipe;
     if (radio.available(&pipe)) {
@@ -94,38 +103,19 @@ void updateNRF() {
       Serial.print(F(" bytes on pipe "));
       Serial.println(pipe);
       
-      Serial.print(F("Pacote:"));
+      Serial.print(F("Pacote: "));
       Serial.println(payloadReceived);
-    }
-  }
-
-  if (Serial.available()) {
-    // change the role via the serial monitor
-
-    char c = toupper(Serial.read());
-    if (c == 'T' && !role) {
-      // Become the TX node
-      role = true;
-      Serial.println(F("*** CHANGING TO TRANSMIT ROLE -- PRESS 'R' TO SWITCH BACK"));
-      radio.stopListening();
-
-    } else if (c == 'R' && role) {
-      // Become the RX node
-      role = false;
-      Serial.println(F("*** CHANGING TO RECEIVE ROLE -- PRESS 'T' TO SWITCH BACK"));
-      radio.startListening();
     }
   }
 }
 
 
 /* CONFIGURAÇÕES CARTÃO MICROSD */
-#include <SD.h>
 
+#include <SD.h>
 #define CS_SDPIN 5
 
 File logfile;
-int contador = 0;
 
 /* FUNÇÕES CARTÃO MICROSD */
 
@@ -158,6 +148,7 @@ void writeSd(String text){
 }
 
 /* CONFIGURAÇÕES BMP e MPU */
+
 #include "Arduino.h"
 
 #include <Wire.h>
@@ -204,8 +195,10 @@ String testBMP() {
 
 // ANALISAR
 void readAltitudeBMP() {
+  // Fazer a leitura da altitude
   altitudeAtual = bmp.readAltitude(1013);
-  
+
+  // Atualizar maior altitude encontrada
   if(altitudeAtual > maximumAltitudeValue) {
     maximumAltitudeValue = altitudeAtual;
   }
@@ -259,29 +252,42 @@ void readVelocityMPU() {
 /* CONFIGURAÇÕES SKIB */
 #define SKIB1 16
 #define SKIB2 17
-#define rangeMaximumALtitudeValue 5
+#define rangeMaximumAltitudeValue 5
+#define rangeMinimumVelocityValue -5
 
-void setupSkib() {
+bool isDropping = false;
+
+void setupSkibPins() {
   pinMode(SKIB1, OUTPUT);
   pinMode(SKIB2, OUTPUT);
 }
 
-void executeSkib() {
-  if((maximumAltitudeValue - altitudeAtual) > rangeMaximumALtitudeValue) {
-    Serial.println("Primeiro skib ativado!");
-    digitalWrite(SKIB1, HIGH);
-    Serial.println("Segundo skib ativado!");
-    digitalWrite(SKIB2, HIGH);
+void analyzeStateOfRocket() {
+  if((maximumAltitudeValue - altitudeAtual) > rangeMaximumAltitudeValue) {
+
+    if(velocidadeAtual < rangeMinimumVelocityValue) {
+      isDropping = true;
+    }
   }
+}
+
+void activateSkibs() {
+  Serial.println("Primeiro skib ativado!");
+  digitalWrite(SKIB1, HIGH);
+  Serial.println("Segundo skib ativado!");
+  digitalWrite(SKIB2, HIGH);
 }
 
 /* COMFIGURAÇÕES FILTRO DE KALMAN */
 #include "KalmanAltitude.h"
 
+
+
+
+
 KalmanAltitude kalmanFilter;
 float deltaTime = 0;
-
-
+int contador = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -312,11 +318,12 @@ void setup() {
   }
 
   if(ENABLE_SKIB) {
-    setupSkib();
+    setupSkibPins();
   }
 }
 
 void loop() {
+  
   // Leitura das variáveis necessárias
   if(ENABLE_BMP) {
     readAltitudeBMP();
@@ -324,12 +331,17 @@ void loop() {
   if(ENABLE_MPU) {
     readVelocityMPU();
   }
+  
   deltaTime = millis();
   kalmanFilter.update(altitudeAtual, velocidadeAtual, deltaTime);
   
   // Verificação da ativação do paraquedas
   if(ENABLE_SKIB) {
-    executeSkib();
+    analyzeStateOfRocket();
+    
+    if(isDropping) {
+      activateSkibs();
+    }
   }
 
   // Preparação para armazenamento dos dados
