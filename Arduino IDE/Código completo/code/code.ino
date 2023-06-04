@@ -176,6 +176,8 @@ Adafruit_MPU6050 mpu;
 double altitudeAtual = 0;
 double altitudeAnterior = 0;
 
+double maximumAltitudeValue = 0;
+
 void setupBMP() {
   if(!bmp.begin(BMP_ADRESS)) {
     Serial.println("BMP not working ...");
@@ -259,15 +261,13 @@ void readVelocityMPU() {
 #define SKIB2 17
 #define rangeMaximumALtitudeValue 5
 
-double maximumAltitudeValue = 0;
-
 void setupSkib() {
   pinMode(SKIB1, OUTPUT);
   pinMode(SKIB2, OUTPUT);
 }
 
 void executeSkib() {
-  if((maximumAltitudeValue - altitudeAtual) > rangeMaximumValue) {
+  if((maximumAltitudeValue - altitudeAtual) > rangeMaximumALtitudeValue) {
     Serial.println("Primeiro skib ativado!");
     digitalWrite(SKIB1, HIGH);
     Serial.println("Segundo skib ativado!");
@@ -278,7 +278,7 @@ void executeSkib() {
 /* COMFIGURAÇÕES FILTRO DE KALMAN */
 #include "KalmanAltitude.h"
 
-KalmanAltitude kalmanFilter();
+KalmanAltitude kalmanFilter;
 float deltaTime = 0;
 
 
