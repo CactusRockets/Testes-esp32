@@ -4,14 +4,15 @@
 
 #include <Wire.h>
 #include <Adafruit_BMP280.h>
-#include <Adafruit_MPU6050.h>
+// #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 
 #define BMP_ADRESS 0x76
 #define MPU_ADRESS 0x68
 
 Adafruit_BMP280 bmp;
-Adafruit_MPU6050 mpu;
+// Adafruit_MPU6050 mpu;
+MPU6050 mpu(MPU_ADRESS, 0.02, 10);
 
 /* FUNÇÕES BMP280 */
 
@@ -64,7 +65,7 @@ double velocidadeAtual = 0;
 double velocidadeAnterior = 0;
 
 void setupMPU() {
-  if (!mpu.begin(MPU_ADRESS)) {
+  if (!mpu.begin()) {
     Serial.println("Failed to find MPU6050 chip");
     while (1) {
       delay(100);
@@ -72,30 +73,42 @@ void setupMPU() {
   }
   Serial.println("MPU6050 Found!");
 
-  // ANALISAR 
-  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
-  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
-  mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+  mpu.calibrate();
+  Serial.println("MPU Calibrado!");
 }
 
 String testMPU() {
-  sensors_event_t a, g, temp;
-  mpu.getEvent(&a, &g, &temp);
+  // sensors_event_t a, g, temp;
+  // mpu.getEvent(&a, &g, &temp);
   
+  // Serial.println("---------------------------------");
+  // Serial.println("MPU:");
+  // Serial.println(a.acceleration.v[0]);
+  // Serial.println(a.acceleration.v[1]);
+  // Serial.println(a.acceleration.v[2]);
+  // Serial.println(a.acceleration.z);
+  // Serial.println(g.gyro.pitch);
+  // Serial.println(g.gyro.roll);
+  // Serial.println("---------------------------------");
+
+  // return String(a.acceleration.v[0]) + "," + String(a.acceleration.v[1]) + "," + String(a.acceleration.v[2]);
+
+  mpu.update();
   Serial.println("---------------------------------");
   Serial.println("MPU:");
-  Serial.println(a.acceleration.v[0]);
-  Serial.println(a.acceleration.v[1]);
-  Serial.println(a.acceleration.v[2]);
-  Serial.println(a.acceleration.z);
-  Serial.println(g.gyro.pitch);
-  Serial.println(g.gyro.roll);
+  Serial.println(mpu.accWorldFrameZ);
+  Serial.println(mpu.accWorldFrameY);
+  Serial.println(mpu.accWorldFrameX);
+  Serial.println(mpu.velZ);
+  Serial.println(mpu.pitch);
+  Serial.println(mpu.roll);
   Serial.println("---------------------------------");
 
-  return String(a.acceleration.v[0]) + "," + String(a.acceleration.v[1]) + "," + String(a.acceleration.v[2]);
+  return String(mpu.accWorldFrameX) + "," + String(mpu.accWorldFrameY) + "," + String(mpu.accWorldFrameZ);
 }
 
 // ANALISAR
 void readVelocityMPU() {
-   velocidadeAtual = 42.0;
+  mpu.update();
+  velocidadeAtual = mpu.velZ;
 }
