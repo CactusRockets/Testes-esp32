@@ -12,20 +12,28 @@
 #define CE_PIN 12
 #define CS_NRFPIN 2
 
+// O tamanho deste pacote não deve exceder 32 bytes
+struct PacketData {
+  float tempo;
+  float altitude;
+  float velocidade;
+  int parachute; 
+  
+  // 4+4+4+4=16bytes  
+};
+
 RF24 radio(CE_PIN, CS_NRFPIN);
 
 // ANALISADO
 uint8_t address[][6] = {"1Node", "2Node"};
 bool radioNumber = 0;
 
-
-
 // Usado para controlar funcionalidade do módulo rádio
 // True = Tx role, False = RX role
 bool role = true;
 
-// ANALISAR
-String payload = "000000,000000";
+// ANALISADO
+PacketData payload;
 bool payloadReceived = false;
 
 /* FUNÇÕES NRF */
@@ -38,9 +46,15 @@ void setupNRF() {
   }
   delay(100);
 
-  // ANALISAR
-  radio.setPALevel(RF24_PA_LOW);
+  // ANALISADO
+  radio.setAutoAck(false);
+  radio.setDataRate(RF24_250KBPS);
+
+  // TESTAR
+  /*
+  radio.setPALevel(RF24_PA_HIGH);
   radio.setPayloadSize(sizeof(payload));
+  */
 
   // ANALISADO
   radio.openWritingPipe(address[radioNumber]);     
@@ -64,13 +78,11 @@ void changeRoleNRF(bool functionNRF) {
 
 // ANALISAR
 void updateNRF() {
-  radio.setPayloadSize(sizeof(payload));
-  
   if(role) {
     // Funcionalidade do transmissor
 
     unsigned long start_timer = micros();                 
-    bool report = radio.write(&payload, sizeof(payload));
+    bool report = radio.write(&payload, sizeof(PacketData));
     unsigned long end_timer = micros();                      
 
     if(report) {
@@ -78,8 +90,6 @@ void updateNRF() {
       Serial.print(F("Time to transmit = "));
       Serial.print(end_timer - start_timer);
       Serial.println(F("us"));
-
-      Serial.println("Pacote: " + String(payload));
     } else {
       Serial.println(F("Transmission failed or timed out"));
     }
@@ -89,8 +99,9 @@ void updateNRF() {
     
     uint8_t pipe;
     if (radio.available(&pipe)) {
+      
       uint8_t bytes = radio.getPayloadSize();
-      radio.read(&payloadReceived, bytes);
+      radio.read(&payloadReceived, sizeof(bool));
       
       Serial.print(F("Received "));
       Serial.print(bytes);

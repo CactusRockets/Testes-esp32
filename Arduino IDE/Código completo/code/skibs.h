@@ -6,6 +6,7 @@
 #define rangeMinimumVelocityValue -5
 
 bool isDropping = false;
+bool parachuteActivated = false;
 
 void setupSkibPins() {
   pinMode(SKIB1, OUTPUT);

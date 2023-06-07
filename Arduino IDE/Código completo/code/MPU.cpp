@@ -40,15 +40,29 @@ MPU6050::MPU6050(int _ADR, float _CONST, float accel)
 
   gyroXOffset = gyroYOffset = gyroZOffset = 0.0;
   gyroAngleX = gyroAngleY = gyroAngleZ = 0.0;
-}
+}  // sensors_event_t a, g, temp;
+  // mpu.getEvent(&a, &g, &temp);
+  
+  // Serial.println("---------------------------------");
+  // Serial.println("MPU:");
+  // Serial.println(a.acceleration.v[0]);
+  // Serial.println(a.acceleration.v[1]);
+  // Serial.println(a.acceleration.v[2]);
+  // Serial.println(a.acceleration.z);
+  // Serial.println(g.gyro.pitch);
+  // Serial.println(g.gyro.roll);
+  // Serial.println("---------------------------------");
+
+  // return String(a.acceleration.v[0]) + "," + String(a.acceleration.v[1]) + "," + String(a.acceleration.v[2]);
+
 
 int MPU6050::begin(){
   // Inicia MPU
   Wire.begin();
-  int result = Wire.beginTransmission(ADR);
+  Wire.beginTransmission(ADR);
   Wire.write(0x6B);
   Wire.write(0x01);
-  Wire.endTransmission();
+  int result = Wire.endTransmission();
   if(result != 0)
     return 0;
 
@@ -64,7 +78,7 @@ int MPU6050::begin(){
   Wire.beginTransmission(ADR);
   Wire.write(0x1B);
   Wire.write(0b00010000);
-  Wire.endTransmission();
+  result = Wire.endTransmission();
   if(result != 0)
     return 0;
  
@@ -222,13 +236,21 @@ void MPU6050::updateAccInWorldFrame(){
   double y = pitch*0.0174533;
   double z = yaw*0.0174533;
 
-  accWorldFrameX = ( accelX )*( cos(z)*cos(y) )     + ( accelY )*( cos(z)*sin(y)*sin(x) - sin(z)*cos(x) ) + ( accelZ )*( cos(z)*sin(y)*cos(x) + sin(z)*sin(x) );
-  accWorldFrameY = ( accelX )*( sin(z)*cos(y) )     + ( accelY )*( sin(z)*sin(y)*sin(x) + cos(z)*cos(x) ) + ( accelZ )*( sin(z)*sin(y)*cos(x) - cos(z)*sin(x) ); 
-  accWorldFrameZ = ((accelZ < 0 ? 1 : -1)*GRAVITY) + ( accelX )*( -sin(y) ) + ( accelY )*( cos(y)*sin(x) )                     + ( accelZ )*( cos(y)*cos(x) );
+  accWorldFrameX = ( accelX )*( cos(z)*cos(y) )
+  + ( accelY )*( cos(z)*sin(y)*sin(x) - sin(z)*cos(x) )
+  + ( accelZ )*( cos(z)*sin(y)*cos(x) + sin(z)*sin(x) );
+  
+  accWorldFrameY = ( accelX )*( sin(z)*cos(y) )     
+  + ( accelY )*( sin(z)*sin(y)*sin(x) + cos(z)*cos(x) ) 
+  + ( accelZ )*( sin(z)*sin(y)*cos(x) - cos(z)*sin(x) ); 
+  
+  accWorldFrameZ = ((accelZ < 0 ? 1 : -1)*GRAVITY) 
+  + ( accelX )*( -sin(y) ) + ( accelY )*( cos(y)*sin(x) )                     
+  + ( accelZ )*( cos(y)*cos(x) );
 }
 
 void MPU6050::AccelFiltro(){
-  //lowPassFilter();
+  // lowPassFilter();
 }
 
 void MPU6050::lowPassFilter(){
@@ -240,4 +262,3 @@ void MPU6050::lowPassFilter(){
   yA = accelY;
   zA = accelZ;
 }
-

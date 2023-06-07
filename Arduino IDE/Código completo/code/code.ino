@@ -10,6 +10,7 @@
 #define ENABLE_SD true
 #define ENABLE_NRF true
 #define ENABLE_SKIB true
+#define ENABLE_BUZZER true
 
 KalmanAltitude kalmanFilter;
 float deltaTime = 0;
@@ -46,6 +47,10 @@ void setup() {
   if(ENABLE_SKIB) {
     setupSkibPins();
   }
+
+  if(ENABLE_BUZZER) {
+    setupBuzzer();
+  }
 }
 
 void loop() {
@@ -73,15 +78,17 @@ void loop() {
   }
 
   // Preparação para armazenamento dos dados
+  String tempoString = String(millis(), 3);
   String altitudeString = String(kalmanFilter.Altitude, 3);
   String velocityString = String(kalmanFilter.Velocity, 3);
+  String parachuteString = String(parachuteActivated ? "1": "0");
 
-  payload = altitudeString + "," + velocityString;
+  String payloadString = tempoString+","+altitudeString+","+velocityString+","+parachuteString;
 
   // Enviar dados para o cartão SD
   if(ENABLE_SD) {
     digitalWrite(CS_SDPIN, LOW);
-    writeSd(payload);
+    writeSd(payloadString);
     digitalWrite(CS_SDPIN, HIGH);
   }
 
@@ -104,6 +111,10 @@ void loop() {
       activateSkibs();
       activateBuzzer();
     }
+  }
+
+  if(ENABLE_BUZZER) {
+    activateBuzzer();
   }
   
   

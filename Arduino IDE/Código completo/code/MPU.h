@@ -3,6 +3,7 @@
   Autores: Alan Victor e Marina Melo
   Agosto de 2021
 */
+
 #ifndef mpu_H
 #define mpu_H
 #include "Arduino.h"
@@ -41,12 +42,11 @@ class MPU6050
 		double velX, velY, velZ;
 		
 		double GRAVITY;
+   
 	private:
 		bool CALIBRATED;
 		double CONST;
 		int ADR;
-		
 };
 
 #endif
-
