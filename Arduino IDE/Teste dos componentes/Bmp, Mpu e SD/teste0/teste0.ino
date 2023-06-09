@@ -8,7 +8,7 @@
 
 #define BMP_ADRESS 0x76
 #define MPU_ADRESS 0x68
-#define CS_PIN 17
+#define CS_PIN 5
 
 #define ENABLE_SERIAL_BEGIN true
 #define ENABLE_SD true
@@ -70,9 +70,8 @@ void setup() {
 
 
   if(ENABLE_SD) {
-    if(!SD.begin(CS_PIN)){
+    while(!SD.begin(CS_PIN)){
       Serial.println("SD not working ...");
-      while(1);
     }
     Serial.println("MicroSD Conectado!");
   }

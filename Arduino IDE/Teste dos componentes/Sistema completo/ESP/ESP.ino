@@ -1,8 +1,8 @@
 #define ENABLE_BMP true
 #define ENABLE_MPU true
+#define ENABLE_SKIB true
 #define ENABLE_SD true
 #define ENABLE_NRF true
-#define ENABLE_SKIB true
 
 
 
@@ -22,8 +22,8 @@
 #define MISO_PIN 19
 #define MOSI_PIN 23
 
-#define CS_NRFPIN 12
-#define CE_PIN 2
+#define CE_PIN 12
+#define CS_NRFPIN 2
 
 
 
@@ -165,9 +165,8 @@ void writeSd(String text){
 }
 
 void setupSD() {
-if(!SD.begin(CS_SDPIN)){
+  while(!SD.begin(CS_SDPIN)){
     Serial.println("SD not working ...");
-    while(1);
   }
   Serial.println("MicroSD Conectado!");
   logfile = SD.open("/dados.txt", FILE_APPEND);
@@ -207,7 +206,7 @@ void setupNRF() {
   // role variable is hardcoded to RX behavior, inform the user of this
   Serial.println(F("*** PRESS 'T' to begin transmitting to the other node"));
 
-  delay(100);
+  delay(3000);
   // Set the PA Level low to try preventing power supply related problems
   // because these examples are likely run with nodes in close proximity to
   // each other.
@@ -252,6 +251,8 @@ void updateNRF() {
       
       Serial.println("Pacote:" + String(payload));           // print payload sent
       payload += 0.01;                                       // increment float payload
+
+      writeSd("Transmission successful!");
     } else {
       Serial.println(F("Transmission failed or timed out")); // payload was not delivered
     }
@@ -300,26 +301,15 @@ void updateNRF() {
 void setup() {
   Serial.begin(115200);
   while (!Serial) {}
+  Serial.println("Serial inicializada!");
   
+  vspi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_SDPIN);
   /*
-  vspi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_NRFPIN);
   hspi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_SDPIN);
   */
   
   pinMode(CS_NRFPIN, OUTPUT);
   pinMode(CS_SDPIN, OUTPUT);
-  
-  if(ENABLE_NRF) {
-    digitalWrite(CS_NRFPIN, LOW);
-    setupNRF();
-    digitalWrite(CS_NRFPIN, HIGH);
-  }
-
-  if(ENABLE_SD) {
-    digitalWrite(CS_SDPIN, LOW);
-    setupSD();
-    digitalWrite(CS_SDPIN, HIGH);
-  }
 
   if(ENABLE_BMP) {
     setupBMP();
@@ -331,6 +321,18 @@ void setup() {
 
   if(ENABLE_SKIB) {
     setupSkib();
+  }
+
+  if(ENABLE_SD) {
+    digitalWrite(CS_SDPIN, LOW);
+    setupSD();
+    digitalWrite(CS_SDPIN, HIGH);
+  }
+  
+  if(ENABLE_NRF) {
+    digitalWrite(CS_NRFPIN, LOW);
+    setupNRF();
+    digitalWrite(CS_NRFPIN, HIGH);
   }
 }
 
@@ -353,16 +355,16 @@ void loop() {
   payload = String("0000,0000,0000,0000,0000,0000");
   */
 
-  if(ENABLE_NRF) {
-    digitalWrite(CS_NRFPIN, LOW);
-    updateNRF();
-    digitalWrite(CS_NRFPIN, HIGH);
-  }
-
   if(ENABLE_SD) {
     digitalWrite(CS_SDPIN, LOW);
     writeSd(infoBMP + infoMPU);
     digitalWrite(CS_SDPIN, HIGH);
+  }
+
+  if(ENABLE_NRF) {
+    digitalWrite(CS_NRFPIN, LOW);
+    updateNRF();
+    digitalWrite(CS_NRFPIN, HIGH);
   }
   
   if(ENABLE_SKIB) {
@@ -370,5 +372,5 @@ void loop() {
   }
   
   contador++;
-  delay(250);
+  delay(500);
 }

@@ -7,8 +7,8 @@
 #define MISO_PIN 19
 #define MOSI_PIN 23
 
-#define CS_NRFPIN 12
-#define CE_PIN 2
+#define CE_PIN 12
+#define CS_NRFPIN 2
 
 
 
@@ -193,9 +193,9 @@ void updateNRF() {
 
 void setup() {
   /*
-  vspi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_NRFPIN);
   hspi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_SDPIN);
   */
+  vspi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_NRFPIN);
   
   pinMode(CS_NRFPIN, OUTPUT);
   pinMode(CS_SDPIN, OUTPUT);
