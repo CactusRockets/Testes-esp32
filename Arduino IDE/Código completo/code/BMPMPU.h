@@ -1,24 +1,10 @@
-/* CONFIGURAÇÕES BMP e MPU */
-
-#include "Arduino.h"
-#include "MPU.cpp"
-
-#include <Wire.h>
-#include <Adafruit_BMP280.h>
-#include <Adafruit_Sensor.h>
-
-#define BMP_ADRESS 0x76
-#define MPU_ADRESS 0x68
-
+/* BMP e MPU */
+Adafruit_MPU6050 mpu;
 Adafruit_BMP280 bmp;
-MPU6050 mpu(MPU_ADRESS, 0.02, 10);
 
-/* FUNÇÕES BMP280 */
-
-double altitudeAtual = 0;
-double altitudeAnterior = 0;
-
-double maximumAltitudeValue = 0;
+float velocidadeAtual = 0;
+float maximumAltitudeValue = 0;
+float altitudeAtual = 0;
 
 void setupBMP() {
   if(!bmp.begin(BMP_ADRESS)) {
@@ -27,44 +13,23 @@ void setupBMP() {
   }
   Serial.println("BMP conectado!");
 
-  // ANALISADO
-  bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,
-                  Adafruit_BMP280::SAMPLING_X2,
-                  Adafruit_BMP280::SAMPLING_X16,
-                  Adafruit_BMP280::FILTER_X16,
-                  Adafruit_BMP280::STANDBY_MS_500);
+  /* Default settings from datasheet. */
+  bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Operating Mode. */
+                  Adafruit_BMP280::SAMPLING_X4,     /* Temp. oversampling */
+                  Adafruit_BMP280::SAMPLING_X8,     /* Pressure oversampling */
+                  Adafruit_BMP280::FILTER_X16,      /* Filtering. */
+                  Adafruit_BMP280::STANDBY_MS_63);  /* Standby time. */
 }
 
-String testBMP() {
-  float number = bmp.readAltitude(1013);
-  Serial.println("---------------------------------");
-  Serial.println(String("BMP:") + String(number));
-  Serial.println("---------------------------------");
-
-  return String(number);
+void testBMP() {
+  data.temp = bmp.readTemperature();
+  data.pres = bmp.readPressure();
+  data.alt = bmp.readAltitude(1017.3);
+  data.vaalt = bmp.readAltitude(1017.3) - altini;
 }
-
-// ANALISADO
-void readAltitudeBMP() {
-  // Fazer a leitura da altitude
-  altitudeAtual = bmp.readAltitude(1013);
-
-  // Atualizar maior altitude encontrada
-  if(altitudeAtual > maximumAltitudeValue) {
-    maximumAltitudeValue = altitudeAtual;
-  }
-}
-
-/* FUNÇÕES MPU6050 */
-
-double aceleracaoAtual = 0;
-double aceleracaoAnterior = 0;
-
-double velocidadeAtual = 0;
-double velocidadeAnterior = 0;
 
 void setupMPU() {
-  if (!mpu.begin()) {
+  if (!mpu.begin(MPU_ADRESS)) {
     Serial.println("Failed to find MPU6050 chip");
     while (1) {
       delay(100);
@@ -72,28 +37,13 @@ void setupMPU() {
   }
   Serial.println("MPU6050 Found!");
 
-  mpu.calibrate();
-  Serial.println("MPU Calibrado!");
+  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+  mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
 }
 
-String testMPU() {
-  
-  mpu.update();
-  Serial.println("---------------------------------");
-  Serial.println("MPU:");
-  Serial.println(mpu.accWorldFrameZ);
-  Serial.println(mpu.accWorldFrameY);
-  Serial.println(mpu.accWorldFrameX);
-  Serial.println(mpu.velZ);
-  Serial.println(mpu.pitch);
-  Serial.println(mpu.roll);
-  Serial.println("---------------------------------");
-
-  return String(mpu.accWorldFrameX) + "," + String(mpu.accWorldFrameY) + "," + String(mpu.accWorldFrameZ);
-}
-
-// ANALISADO
-void readVelocityMPU() {
-  mpu.update();
-  velocidadeAtual = mpu.velZ;
+void testMPU() {
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
+  data.acz= a.acceleration.z; 
 }

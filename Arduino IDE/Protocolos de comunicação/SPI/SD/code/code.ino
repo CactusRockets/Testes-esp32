@@ -17,7 +17,7 @@ File logfile;
 int contador = 0;
 
 void writeSd(String text){
-  logfile = SD.open("/meulog.txt", FILE_APPEND);
+  logfile = SD.open("/data.txt", FILE_APPEND);
   if(logfile){
     logfile.println(text);
     Serial.println("Gravando...");

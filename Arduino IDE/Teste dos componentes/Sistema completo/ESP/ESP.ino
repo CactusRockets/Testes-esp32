@@ -27,11 +27,6 @@
 
 
 
-SPIClass vspi(VSPI);
-SPIClass hspi(HSPI);
-
-
-
 
 // instantiate an object contadorfor the nRF24L01 transceiver
 RF24 radio(CE_PIN, CS_NRFPIN);
@@ -60,13 +55,11 @@ float payload = 0.0;
 
 #define CS_SDPIN 5
 
-File logfile;
+File myFile;
 int contador = 0;
 
 
 /* CONFIGURAÇÕES PARA O USO DO BMP e MPU */
-#include "Arduino.h"
-
 #include <Wire.h>
 #include <Adafruit_BMP280.h>
 #include <Adafruit_MPU6050.h>
@@ -153,32 +146,45 @@ String testMPU() {
 }
 
 /* FUNÇÕES CARTÃO MICROSD */
-void writeSd(String text){
-  logfile = SD.open("/dados.txt", FILE_APPEND);
-  if(logfile){
-    logfile.println(text);
-    Serial.println("Gravando...");
-    logfile.close();
-  } else {
-    Serial.println("Não foi possível gravar...");
-  }
-}
-
 void setupSD() {
-  while(!SD.begin(CS_SDPIN)){
-    Serial.println("SD not working ...");
-  }
-  Serial.println("MicroSD Conectado!");
-  logfile = SD.open("/dados.txt", FILE_APPEND);
+  Serial.print("Inicializando o cartão SD...");
+  // verifica se o cartão SD está presente e se pode ser inicializado
 
-  if(logfile){
-    logfile.println("Gravando...");
-    Serial.println("Gravando...");
-    logfile.close();
+  
+  if (!SD.begin(5)) { // ESP8266 GPIO16 D0
+    // programa encerrado 
+    Serial.println("Falha, verifique se o cartão está presente.");
+    return;                                                      
+  }
+
+  // Cria arquivo data.txt e abre
+  myFile = SD.open("data.txt", FILE_APPEND);                        
+  // Escreve dados no arquivo
+  if (myFile) {
+    Serial.print("Gravando...");
+    myFile.println("Tempo, Temperatura , Altitude, VAltitude , AceZ, Altitudemp, Pressão, Paraquedas");
+    myFile.close();
+
   } else {
-    Serial.println("Não foi possível gravar...");
+    Serial.println("Error ao abrir data.txt");
+
   }
 }
+
+void writeSd(String str) {
+  myFile = SD.open("/data.txt", FILE_APPEND);
+
+  if (myFile) {
+    Serial.println("(OK)");
+    myFile.println(str);
+    myFile.close();
+
+  } else {
+    Serial.println("Error ao gravar em data.txt");
+
+  }
+}
+
 
 /* FUNÇÕES NRF */
 void setupNRF() {
@@ -303,11 +309,6 @@ void setup() {
   while (!Serial) {}
   Serial.println("Serial inicializada!");
   
-  vspi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_SDPIN);
-  /*
-  hspi.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_SDPIN);
-  */
-  
   pinMode(CS_NRFPIN, OUTPUT);
   pinMode(CS_SDPIN, OUTPUT);
 
@@ -350,21 +351,12 @@ void loop() {
     infoMPU = testMPU();
   }
 
-  /*
-  payload = contador;
-  payload = String("0000,0000,0000,0000,0000,0000");
-  */
-
   if(ENABLE_SD) {
-    digitalWrite(CS_SDPIN, LOW);
-    writeSd(infoBMP + infoMPU);
-    digitalWrite(CS_SDPIN, HIGH);
+    writeSd("Alguma coisa");
   }
 
   if(ENABLE_NRF) {
-    digitalWrite(CS_NRFPIN, LOW);
     updateNRF();
-    digitalWrite(CS_NRFPIN, HIGH);
   }
   
   if(ENABLE_SKIB) {

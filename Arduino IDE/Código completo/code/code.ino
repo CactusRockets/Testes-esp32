@@ -1,41 +1,63 @@
-#include "nrf.h"
-#include "moduleSD.h"
-#include "BMPMPU.h"
-#include "skibs.h"
-#include "KalmanAltitude.h"
-#include "buzzer.h"
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
+#include <Wire.h>
+#include <Adafruit_BMP280.h>
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+#include <SD.h>
 
 #define ENABLE_BMP true
 #define ENABLE_MPU true
+#define ENABLE_SKIB true
 #define ENABLE_SD true
 #define ENABLE_NRF true
-#define ENABLE_SKIB true
-#define ENABLE_BUZZER true
 
-KalmanAltitude kalmanFilter;
-float deltaTime = 0;
-int contador = 0;
+#define SKIB1 16
+#define SKIB2 17
+
+#define CE_PIN 12
+#define CS_NRFPIN 2
+#define CS_SDPIN 5
+
+#define BMP_ADRESS 0x76
+#define MPU_ADRESS 0x68
+
+// O tamanho deste pacote não deve exceder 32 bytes
+struct PacketData {
+  unsigned long mill;
+  float altmp;
+  float temp;
+  float pres;
+  float alt;
+  float vaalt;
+  float acz;
+  int parachute;
+  // 4+4+4+4+4+4+4+4=32bytes  
+};
+
+PacketData data;
+float altini;
+
+#include "nrf.h"
+#include "moduleSD.h"
+#include "buzzer.h"
+#include "BMPMPU.h"
+#include "skibs.h"
+
 
 void setup() {
+  // Inicializa a serial
   Serial.begin(115200);
-  while (!Serial) {}
-  
-  pinMode(CS_NRFPIN, OUTPUT);
-  pinMode(CS_SDPIN, OUTPUT);
-  
-  
+
   if(ENABLE_NRF) {
-    digitalWrite(CS_NRFPIN, LOW);
     setupNRF();
-    digitalWrite(CS_NRFPIN, HIGH);
   }
 
   if(ENABLE_SD) {
-    digitalWrite(CS_SDPIN, LOW);
-    setupSD();
-    digitalWrite(CS_SDPIN, HIGH);
+    setupSd();
   }
-
+  
   if(ENABLE_BMP) {
     setupBMP();
   }
@@ -48,77 +70,52 @@ void setup() {
     setupSkibPins();
   }
 
-  if(ENABLE_BUZZER) {
-    setupBuzzer();
-  }
+  // Zera os dados da struct
+  data.mill = 0;
+  data.altmp = 0;
+  data.temp = 0;
+  data.pres = 0;
+  data.alt = 0;
+  data.vaalt = 0;
+  data.acz = 0; 
+
+  altini = bmp.readAltitude(1017.3);
+  delay(100);
 }
 
 void loop() {
-  
-  // Leitura das variáveis necessárias
+
+  // Armazena o tempo do microcontrolador
+  data.mill= millis()/1000;
+
+  // Medições BMP280
   if(ENABLE_BMP) {
-    readAltitudeBMP();
+    testBMP();
   }
+
+  // Medições MPU6050
   if(ENABLE_MPU) {
-    readVelocityMPU();
-  }
+    testMPU();
+  } 
 
-  // Variação do tempo (em segundos)
-  deltaTime = (millis() - deltaTime) * 1000;
-  kalmanFilter.update(altitudeAtual, velocidadeAtual, deltaTime);
-  
-  // Verificação da ativação do paraquedas
-  if(ENABLE_SKIB) {
-    analyzeStateOfRocket();
-    
-    if(isDropping) {
-      activateSkibs();
-      activateBuzzer();
-    }
-  }
+  // Armazena os dados em uma string
+  String dados = String(data.mill,3)
+    + "," + String(data.temp, 3)
+    + "," + String(data.alt, 3)
+    + "," + String(data.vaalt, 3)
+    + "," + String(data.acz, 3)
+    + "," + String(data.altmp, 3)
+    + "," + String(data.pres, 3)
+    + "," + String(data.parachute);
+  Serial.println(dados);
 
-  // Preparação para armazenamento dos dados
-  String tempoString = String(millis(), 3);
-  String altitudeString = String(kalmanFilter.Altitude, 3);
-  String velocityString = String(kalmanFilter.Velocity, 3);
-  String parachuteString = String(parachuteActivated ? "1": "0");
-
-  String payloadString = tempoString+","+altitudeString+","+velocityString+","+parachuteString;
-
-  // Enviar dados para o cartão SD
   if(ENABLE_SD) {
-    digitalWrite(CS_SDPIN, LOW);
-    writeSd(payloadString);
-    digitalWrite(CS_SDPIN, HIGH);
+    writeOnSD(dados);
   }
 
-  // Enviar dados para a telemetria
-  // Receber dados da telemetria
   if(ENABLE_NRF) {
-    digitalWrite(CS_NRFPIN, LOW);
-
-    updateNRF();
-    changeRoleNRF(false);
-    updateNRF();
-    changeRoleNRF(true);
-    
-    digitalWrite(CS_NRFPIN, HIGH);
+    transmit();
   }
 
-  // Ativação manual dos skibs
-  if(ENABLE_SKIB) {
-    if(payloadReceived) {
-      activateSkibs();
-      activateBuzzer();
-    }
-  }
-
-  if(ENABLE_BUZZER) {
-    activateBuzzer();
-  }
-  
-  
-  contador++;
-  Serial.println(String("Quantidade no Loop: ") + String(contador));
-  delay(150);
+  delay(50);  
 }

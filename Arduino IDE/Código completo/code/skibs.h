@@ -1,4 +1,4 @@
-/* CONFIGURAÇÕES PARACHUTE */
+/* CONFIGURAÇÕES SKIBS */
 
 #define SKIB1 16
 #define SKIB2 17
@@ -27,4 +27,6 @@ void activateSkibs() {
   digitalWrite(SKIB1, HIGH);
   Serial.println("Segundo skib ativado!");
   digitalWrite(SKIB2, HIGH);
+
+  parachuteActivated = true;
 }

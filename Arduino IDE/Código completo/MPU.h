@@ -6,7 +6,6 @@
 
 #ifndef mpu_H
 #define mpu_H
-#include "Arduino.h"
 
 class MPU6050
 {
