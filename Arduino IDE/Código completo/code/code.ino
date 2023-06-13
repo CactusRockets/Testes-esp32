@@ -25,19 +25,18 @@
 
 // O tamanho deste pacote não deve exceder 32 bytes
 struct PacketData {
-  unsigned long mill;
-  float altmp;
-  float temp;
-  float pres;
-  float alt;
-  float vaalt;
-  float acz;
-  int parachute;
-  // 4+4+4+4+4+4+4+4=32bytes  
+  unsigned long time;
+  float altitude_MPU;
+  float temperature;
+  float pressure;
+  float altitude;
+  float variation_altitude;
+  float acceleration_Z;
+  int parachute; 
 };
 
 PacketData data;
-float altini;
+float initial_altitude;
 
 #include "nrf.h"
 #include "moduleSD.h"
@@ -71,22 +70,22 @@ void setup() {
   }
 
   // Zera os dados da struct
-  data.mill = 0;
-  data.altmp = 0;
-  data.temp = 0;
-  data.pres = 0;
-  data.alt = 0;
-  data.vaalt = 0;
-  data.acz = 0; 
+  data.time = 0;
+  data.altitude_MPU = 0;
+  data.temperature = 0;
+  data.pressure = 0;
+  data.altitude = 0;
+  data.variation_altitude = 0;
+  data.acceleration_Z = 0; 
 
-  altini = bmp.readAltitude(1017.3);
+  initial_altitude = bmp.readAltitude(1017.3);
   delay(100);
 }
 
 void loop() {
 
   // Armazena o tempo do microcontrolador
-  data.mill= millis()/1000;
+  data.time = millis() / 1000;
 
   // Medições BMP280
   if(ENABLE_BMP) {
@@ -99,13 +98,13 @@ void loop() {
   } 
 
   // Armazena os dados em uma string
-  String dados = String(data.mill,3)
-    + "," + String(data.temp, 3)
-    + "," + String(data.alt, 3)
-    + "," + String(data.vaalt, 3)
-    + "," + String(data.acz, 3)
-    + "," + String(data.altmp, 3)
-    + "," + String(data.pres, 3)
+  String dados = String(data.time,3)
+    + "," + String(data.temperature, 3)
+    + "," + String(data.altitude, 3)
+    + "," + String(data.variation_altitude, 3)
+    + "," + String(data.acceleration_Z, 3)
+    + "," + String(data.altitude_MPU, 3)
+    + "," + String(data.pressure, 3)
     + "," + String(data.parachute);
   Serial.println(dados);
 
