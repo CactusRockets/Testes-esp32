@@ -1,4 +1,4 @@
-#define buzzerAtivo 12
+#define buzzerAtivo 4
 #define tempoDeAtivacao 3000
 
 void bipAtivo(int tempoBip) {

@@ -22,7 +22,7 @@ void setupBMP() {
                   Adafruit_BMP280::STANDBY_MS_63);  /* Standby time. */
 }
 
-void testBMP() {
+void readBMP() {
   data.temperature = bmp.readTemperature();
   data.pressure = bmp.readPressure();
   data.altitude = bmp.readAltitude(1017.3);
@@ -49,7 +49,7 @@ void setupMPU() {
   mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
 }
 
-void testMPU() {
+void readMPU() {
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
   data.acceleration_Z = a.acceleration.z;

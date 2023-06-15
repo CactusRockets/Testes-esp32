@@ -2,7 +2,7 @@
 
 #define SKIB1 16
 #define SKIB2 17
-#define rangeMaximumAltitudeValue 5
+#define rangeMaximumAltitudeValue 2
 #define rangeMinimumVelocityValue -5
 
 bool isDropping = false;
@@ -19,6 +19,7 @@ void analyzeStateOfRocket() {
     if(velocidadeAtual < rangeMinimumVelocityValue) {
       isDropping = true;
     }
+    isDropping = true;
   }
 }
 

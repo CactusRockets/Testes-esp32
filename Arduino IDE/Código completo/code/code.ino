@@ -7,6 +7,7 @@
 #include <Adafruit_Sensor.h>
 #include <SD.h>
 
+#define ENABLE_BUZZER true
 #define ENABLE_BMP true
 #define ENABLE_MPU true
 #define ENABLE_SKIB true
@@ -25,7 +26,7 @@
 
 // O tamanho deste pacote não deve exceder 32 bytes
 struct PacketData {
-  unsigned long time;
+  float time;
   float altitude_MPU;
   float temperature;
   float pressure;
@@ -48,6 +49,10 @@ float initial_altitude;
 void setup() {
   // Inicializa a serial
   Serial.begin(115200);
+
+  if(ENABLE_BUZZER) {
+    setupBuzzer();
+  }
 
   if(ENABLE_NRF) {
     setupNRF();
@@ -85,27 +90,27 @@ void setup() {
 void loop() {
 
   // Armazena o tempo do microcontrolador
-  data.time = millis() / 1000;
+  data.time = millis() / 1000.0;
 
   // Medições BMP280
   if(ENABLE_BMP) {
-    testBMP();
+    readBMP();
   }
 
   // Medições MPU6050
   if(ENABLE_MPU) {
-    testMPU();
+    readMPU();
   } 
 
   // Armazena os dados em uma string
-  String dados = String(data.time,3)
-    + "," + String(data.temperature, 3)
-    + "," + String(data.altitude, 3)
-    + "," + String(data.variation_altitude, 3)
-    + "," + String(data.acceleration_Z, 3)
+  String dados = String(data.time, 3)            //
+    + "," + String(data.temperature, 3)          //
+    + "," + String(data.altitude, 3)             //
+    + "," + String(data.variation_altitude, 3)   //
+    + "," + String(data.acceleration_Z, 3)       //
     + "," + String(data.altitude_MPU, 3)
-    + "," + String(data.pressure, 3)
-    + "," + String(data.parachute);
+    + "," + String(data.pressure, 3)             //
+    + "," + String(data.parachute);              //
   Serial.println(dados);
 
   if(ENABLE_SD) {
@@ -114,6 +119,15 @@ void loop() {
 
   if(ENABLE_NRF) {
     transmit();
+  }
+
+  analyzeStateOfRocket();
+  if(isDropping) {
+    activateSkibs();
+  }
+  if(parachuteActivated) {
+    activateBuzzer();
+    data.parachute = 1;
   }
 
   delay(50);  

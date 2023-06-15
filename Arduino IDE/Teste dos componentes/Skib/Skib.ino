@@ -1,5 +1,5 @@
-#define SKIB1 12
-#define SKIB2 13
+#define SKIB1 16
+#define SKIB2 17
 
 #define ENABLE 1
 

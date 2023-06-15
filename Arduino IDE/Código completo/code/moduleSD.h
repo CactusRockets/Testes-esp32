@@ -20,7 +20,7 @@ void setupSd() {
   // Escreve dados no arquivo
   if (myFile) {
     Serial.print("Gravando...");
-    myFile.println("Tempo, Temperatura, Altitude, VAltitude, AceZ, Altitudemp, Pressão, Paraquedas");
+    myFile.println("Tempo, Temperatura, Altitude, VAltitude, AceleraçãoZ, AltitudeMPU, Pressão, Paraquedas");
     myFile.close();
 
   } else {
