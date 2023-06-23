@@ -100,7 +100,16 @@ void loop() {
   // Medições MPU6050
   if(ENABLE_MPU) {
     readMPU();
-  } 
+  }
+
+  analyzeStateOfRocket();
+  if(isDropping) {
+    activateSkibs();
+  }
+  if(parachuteActivated) {
+    data.parachute = 1;
+    activateBuzzer();
+  }
 
   // Armazena os dados em uma string
   String dados = String(data.time, 3)            //
@@ -108,7 +117,7 @@ void loop() {
     + "," + String(data.altitude, 3)             //
     + "," + String(data.variation_altitude, 3)   //
     + "," + String(data.acceleration_Z, 3)       //
-    + "," + String(data.altitude_MPU, 3)
+    + "," + String(data.altitude_MPU, 3)         //
     + "," + String(data.pressure, 3)             //
     + "," + String(data.parachute);              //
   Serial.println(dados);
@@ -119,15 +128,7 @@ void loop() {
 
   if(ENABLE_NRF) {
     transmit();
-  }
-
-  analyzeStateOfRocket();
-  if(isDropping) {
-    activateSkibs();
-  }
-  if(parachuteActivated) {
-    activateBuzzer();
-    data.parachute = 1;
+    receive();
   }
 
   delay(50);  

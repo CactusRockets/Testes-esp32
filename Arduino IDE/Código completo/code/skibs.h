@@ -15,10 +15,9 @@ void setupSkibPins() {
 
 void analyzeStateOfRocket() {
   if((maximumAltitudeValue - altitudeAtual) > rangeMaximumAltitudeValue) {
-
-    if(velocidadeAtual < rangeMinimumVelocityValue) {
-      isDropping = true;
-    }
+    isDropping = true;
+  }
+  if(aux) {
     isDropping = true;
   }
 }
