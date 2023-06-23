@@ -19,7 +19,7 @@ void setupBMP() {
                   Adafruit_BMP280::SAMPLING_X4,     /* Temp. oversampling */
                   Adafruit_BMP280::SAMPLING_X8,     /* Pressure oversampling */
                   Adafruit_BMP280::FILTER_X16,      /* Filtering. */
-                  Adafruit_BMP280::STANDBY_MS_63);  /* Standby time. */
+                  Adafruit_BMP280::STANDBY_MS_1);   /* Standby time. */
 }
 
 void readBMP() {
@@ -54,5 +54,5 @@ void readMPU() {
   mpu.getEvent(&a, &g, &temp);
   data.acceleration_Z = a.acceleration.z;
 
-  velocidadeAtual = 12;
+  velocidadeAtual = 0;
 }
