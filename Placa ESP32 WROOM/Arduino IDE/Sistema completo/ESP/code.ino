@@ -36,7 +36,13 @@ struct PacketData {
   int parachute; 
 };
 
+struct SoloData {
+  int parachute = 0; 
+};
+
 PacketData data;
+SoloData receivedData;
+
 float initial_altitude;
 
 #include "nrf.h"
