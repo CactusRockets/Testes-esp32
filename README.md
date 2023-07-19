@@ -1,4 +1,4 @@
-# Testes da placa HELTEC LoRa Wifi 32 (V2)
+# Testes de Placas desenvolvimento, componentes, protocolos e outros
 
 Cada código está associado a algum teste que foi realizado (geralmente descrito no README.md da pasta do teste). Logo, não altere os códigos que já estão vinculados a algum teste.
 
