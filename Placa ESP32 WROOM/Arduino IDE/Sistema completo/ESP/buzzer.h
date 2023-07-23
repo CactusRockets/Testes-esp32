@@ -1,5 +1,6 @@
+/* CONFIGURAÇÕES BUZZER */
 
-#define buzzerPIN 4
+#define buzzerPIN 14
 #define tempoDeAtivacao 3000
 
 void setupBuzzer() {

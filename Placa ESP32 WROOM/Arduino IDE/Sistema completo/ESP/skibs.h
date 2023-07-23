@@ -1,7 +1,7 @@
 /* CONFIGURAÇÕES SKIBS */
 
-#define SKIB1 16
-#define SKIB2 17
+#define SKIB1 13
+#define SKIB2 12
 #define rangeMaximumAltitudeValue 2
 #define rangeMinimumVelocityValue -5
 
@@ -17,7 +17,7 @@ void analyzeStateOfRocket() {
   if((maximumAltitudeValue - altitudeAtual) > rangeMaximumAltitudeValue) {
     isDropping = true;
   }
-  if(aux) {
+  if(receivedData.parachute == 1) {
     isDropping = true;
   }
 }

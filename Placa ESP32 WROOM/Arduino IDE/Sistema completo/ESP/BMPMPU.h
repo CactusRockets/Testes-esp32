@@ -1,4 +1,8 @@
-/* BMP e MPU */
+/* CONFIGURAÇÕES BMP e MPU */
+
+#define BMP_ADRESS 0x76
+#define MPU_ADRESS 0x68
+
 Adafruit_MPU6050 mpu;
 Adafruit_BMP280 bmp;
 
@@ -23,12 +27,12 @@ void setupBMP() {
 }
 
 void readBMP() {
-  data.temperature = bmp.readTemperature();
-  data.pressure = bmp.readPressure();
-  data.altitude = bmp.readAltitude(1017.3);
-  data.variation_altitude = bmp.readAltitude(1017.3) - initial_altitude;
+  allData.data.temperature = bmp.readTemperature();
+  allData.data.pressure = bmp.readPressure();
+  allData.data.altitude = bmp.readAltitude(1017.3);
+  allData.data.variation_altitude = bmp.readAltitude(1017.3) - initial_altitude;
 
-  altitudeAtual = data.altitude;
+  altitudeAtual = allData.data.altitude;
 
   if(altitudeAtual > maximumAltitudeValue) {
     maximumAltitudeValue = altitudeAtual;
@@ -52,7 +56,7 @@ void setupMPU() {
 void readMPU() {
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
-  data.acceleration_Z = a.acceleration.z;
+  allData.data.acceleration_Z = a.acceleration.z;
 
   velocidadeAtual = 0;
 }
