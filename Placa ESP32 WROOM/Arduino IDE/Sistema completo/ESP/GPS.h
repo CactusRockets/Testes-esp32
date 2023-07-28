@@ -14,17 +14,6 @@ TinyGPS gps;
 
 long latitude, longitude;
 unsigned long idadeInformacaoGPS;
-int ano;
-byte mes, dia, hora, minuto, segundo, centesimo;
-float velocidadeGPS;
-float altitudeGPS;
-// sentido do movimento (em centesimo de graus)
-unsigned long sentidoGPS;
-// Quantidade de satélite da informação
-unsigned short satelitesGPS;
-// Precisão dos dados
-unsigned long precisaoGPS;
-
 
 void setupGPS() {
   //Configuração inicial do GPS
@@ -42,15 +31,6 @@ void getGPSData() {
 
   if(isNewGPSData) {
     gps.get_position(&latitude, &longitude, &idadeInformacaoGPS);
-    gps.crack_datetime(
-      &ano, &mes, &dia, &hora, &minuto, &segundo, &centesimo, &idadeInformacaoGPS
-    );
-
-    velocidadeGPS = gps.f_speed_kmph();
-    altitudeGPS = gps.f_altitude();
-    sentidoGPS = gps.course();
-    satelitesGPS = gps.satellites();
-    precisaoGPS =  gps.hdop();
   }
 }
 
@@ -66,35 +46,11 @@ void organizeGPSData() {
   if (idadeInformacaoGPS != TinyGPS::GPS_INVALID_AGE) {
     idadeInformacaoGPS = 0;
   }
-
-  // Altitude
-  if ((altitudeGPS == TinyGPS::GPS_INVALID_ALTITUDE) || (altitudeGPS == 1000000)) {
-    altitudeGPS = 0;
-  }
-
-  // Satélites e Precisão
-  if (satelitesGPS == TinyGPS::GPS_INVALID_SATELLITES) {
-    satelitesGPS = 0;
-  }
-  if (precisaoGPS == TinyGPS::GPS_INVALID_HDOP) {
-    precisaoGPS = 0;
-  }
 }
 
 void saveGPSData() {
   allData.GPSData = {
-    latitude, longitude,
-    idadeInformacaoGPS,
-    ano,
-    mes, dia, hora, minuto, segundo, centesimo,
-    velocidadeGPS,
-    altitudeGPS,
-    // sentido do movimento (em centesimo de graus)
-    sentidoGPS,
-    // Quantidade de satélite da informação
-    satelitesGPS,
-    // Precisão dos dados
-    precisaoGPS
+    latitude, longitude
   };
 }
 

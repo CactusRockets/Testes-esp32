@@ -13,7 +13,7 @@ float altitudeAtual = 0;
 
 void setupBMP() {
   if(!bmp.begin(BMP_ADRESS)) {
-    Serial.println("BMP not working ...");
+    Serial.println("Failed to find BMP280 chip");
     while(1);
   }
   Serial.println("BMP conectado!");
@@ -31,7 +31,7 @@ void readBMP() {
   allData.data.pressure = bmp.readPressure();
   allData.data.altitude = bmp.readAltitude(1017.3);
   allData.data.variation_altitude = bmp.readAltitude(1017.3) - initial_altitude;
-
+  
   altitudeAtual = allData.data.altitude;
 
   if(altitudeAtual > maximumAltitudeValue) {
@@ -42,11 +42,9 @@ void readBMP() {
 void setupMPU() {
   if (!mpu.begin(MPU_ADRESS)) {
     Serial.println("Failed to find MPU6050 chip");
-    while (1) {
-      delay(100);
-    }
+    while (1);
   }
-  Serial.println("MPU6050 Found!");
+  Serial.println("MPU6050 conectado!");
 
   mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
   mpu.setGyroRange(MPU6050_RANGE_500_DEG);

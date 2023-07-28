@@ -9,10 +9,9 @@ void setupSd() {
   Serial.print("Inicializando o cartão SD...");
   // verifica se o cartão SD está presente e se pode ser inicializado
   
-  if (!SD.begin(CS_SDPIN)) {
+  while(!SD.begin(CS_SDPIN)) {
     // programa encerrado 
     Serial.println("Falha, verifique se o cartão está presente.");
-    return;                                                      
   }
 
   // Cria arquivo data.txt e abre
@@ -20,7 +19,7 @@ void setupSd() {
   // Escreve dados no arquivo
   if (myFile) {
     Serial.print("Gravando...");
-    myFile.println("Tempo, Temperatura, Altitude, VAltitude, AceleraçãoZ, AltitudeMPU, Pressão, Paraquedas");
+    myFile.println("Informations");
     myFile.close();
 
   } else {

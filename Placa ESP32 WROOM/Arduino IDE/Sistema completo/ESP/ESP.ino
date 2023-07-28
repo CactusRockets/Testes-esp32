@@ -4,16 +4,16 @@
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <SD.h>
+#include <HardwareSerial.h>
 
-#define ENABLE_BUZZER true
+#define ENABLE_BUZZER false
 #define ENABLE_BMP true
 #define ENABLE_MPU true
-#define ENABLE_SKIB true
-#define ENABLE_SD true
+#define ENABLE_SKIB false
+#define ENABLE_SD false
 #define ENABLE_TELEMETRY true
-#define ENABLE_GPS true
+#define ENABLE_GPS false
 
-// O tamanho deste pacote não deve exceder 32 bytes
 struct PacketData {
   float time;
   float altitude_MPU;
@@ -27,17 +27,6 @@ struct PacketData {
 
 struct PacketGPSData {
   long latitude, longitude;
-  unsigned long idadeInformacaoGPS;
-  int ano;
-  byte mes, dia, hora, minuto, segundo, centesimo;
-  float velocidadeGPS;
-  float altitudeGPS;
-  // sentido do movimento (em centesimo de graus)
-  unsigned long sentidoGPS;
-  // Quantidade de satélite da informação
-  unsigned short satelitesGPS;
-  // Precisão dos dados
-  unsigned long precisaoGPS;
 };
 
 struct AllPacketData {
@@ -46,11 +35,12 @@ struct AllPacketData {
 };
 
 struct SoloData {
-  int parachute = 0; 
+  int parachute; 
 };
 
 AllPacketData allData;
-SoloData receivedData;
+SoloData soloData;
+String soloMessage;
 
 float initial_altitude;
 
@@ -63,7 +53,8 @@ float initial_altitude;
 
 void setup() {
   // Inicializa a serial
-  Serial.begin(115200);
+  Serial.begin(9600);
+  Serial.println("");
 
   if(ENABLE_BUZZER) {
     setupBuzzer();
@@ -93,15 +84,14 @@ void setup() {
     setupGPS();
   }
 
-  // Zera os dados da struct
   allData = {
     { 0,0,0,0,0,0,0,0 },
-    { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }
+    { 0,0 }
   };
-  receivedData.parachute = 0;
+  soloData = { 0 };
 
   initial_altitude = bmp.readAltitude(1017.3);
-  delay(100);
+  delay(1000);
 }
 
 void loop() {
@@ -134,41 +124,30 @@ void loop() {
   }
 
   // Armazena os dados em uma string
-  String dados = String(allData.data.time, 3)         
-    + "," + String(allData.data.temperature, 3)       
-    + "," + String(allData.data.altitude, 3)          
-    + "," + String(allData.data.variation_altitude, 3)
-    + "," + String(allData.data.acceleration_Z, 3)    
-    + "," + String(allData.data.altitude_MPU, 3)      
-    + "," + String(allData.data.pressure, 3)
+  String dados = String(allData.data.time)         
+    + "," + String(allData.data.temperature)       
+    + "," + String(allData.data.altitude)
+    + "," + String(allData.data.variation_altitude)
+    + "," + String(allData.data.acceleration_Z)    
+    + "," + String(allData.data.altitude_MPU)      
+    + "," + String(allData.data.pressure)
     + "," + String(allData.data.parachute);     
-  Serial.println("Dados:" + dados);
-  String GPSDados = String(allData.GPSData.latitude, 3)
-    + "," + String(allData.GPSData.longitude, 3)
-    + "," + String(allData.GPSData.idadeInformacaoGPS, 3)
-    + "," + String(allData.GPSData.ano, 3)
-    + "," + String(allData.GPSData.mes, 3)
-    + "," + String(allData.GPSData.dia, 3)
-    + "," + String(allData.GPSData.hora, 3)
-    + "," + String(allData.GPSData.minuto, 3)
-    + "," + String(allData.GPSData.segundo, 3)
-    + "," + String(allData.GPSData.centesimo, 3)
-    + "," + String(allData.GPSData.velocidadeGPS, 3)
-    + "," + String(allData.GPSData.altitudeGPS, 3)
-    + "," + String(allData.GPSData.sentidoGPS, 3)
-    + "," + String(allData.GPSData.satelitesGPS, 3)
-    + "," + String(allData.GPSData.precisaoGPS, 3);
-  Serial.println("Dados do GPS:" + GPSDados);
+  String GPSDados = String(allData.GPSData.latitude)
+    + "," + String(allData.GPSData.longitude);
   String AllDados = dados + "," + GPSDados;
+
+  Serial.println(AllDados);
 
   if(ENABLE_SD) {
     writeOnSD(AllDados);
   }
 
   if(ENABLE_TELEMETRY) {
-    transmit();
-    receive();
+    transmitString(AllDados);
+    if(LoRaSerial.available() > 0) {
+      receiveString();
+    }
   }
 
-  delay(50);  
+  delay(500);
 }
