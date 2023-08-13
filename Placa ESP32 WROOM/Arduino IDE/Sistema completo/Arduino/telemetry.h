@@ -8,6 +8,9 @@
 #define M0 33
 #define M1 32
 
+#define LORA_STRING_METHOD 1
+#define LORA_STRUCT_METHOD 2
+
 #define LORA_WAY 1
 
 // Usando a Serial 2 do ESP32

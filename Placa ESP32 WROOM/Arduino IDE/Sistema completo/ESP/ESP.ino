@@ -8,10 +8,10 @@
 #include <TinyGPSPlus.h>
 #include <HardwareSerial.h>
 
-#define ENABLE_BUZZER false
+#define ENABLE_BUZZER true
 #define ENABLE_BMP true
 #define ENABLE_MPU true
-#define ENABLE_SKIB false
+#define ENABLE_SKIBS true
 #define ENABLE_SD false
 #define ENABLE_TELEMETRY true
 #define ENABLE_GPS true
@@ -80,7 +80,7 @@ void setup() {
     setupMPU();
   }
 
-  if(ENABLE_SKIB) {
+  if(ENABLE_SKIBS) {
     setupSkibPins();
   }
 
@@ -118,7 +118,7 @@ void loop() {
   }
 
   analyzeStateOfRocket();
-  if(ENABLE_SKIB) {
+  if(ENABLE_SKIBS) {
     if(isDropping) {
       activateSkibs();
     }
@@ -150,9 +150,21 @@ void loop() {
   }
 
   if(ENABLE_TELEMETRY) {
-    transmitString(AllDados);
+    if(LORA_WAY == LORA_STRING_METHOD) {
+      transmitString(AllDados);
+
+    } else if(LORA_WAY == LORA_STRUCT_METHOD) {
+      transmit(&allData);
+
+    }
     if(LoRaSerial.available() > 0) {
-      receiveString();
+      if(LORA_WAY == LORA_STRING_METHOD) {
+        receiveString();
+
+      } else if(LORA_WAY == LORA_STRUCT_METHOD) {
+        receive(&soloData);
+
+      }
     }
   }
 

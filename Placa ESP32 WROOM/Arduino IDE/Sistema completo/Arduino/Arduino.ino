@@ -47,10 +47,10 @@ void clearData() {
 }
 
 void printData() {
-  if(LORA_WAY == 1) {
+  if(LORA_WAY == LORA_STRING_METHOD) {
     Serial.println(AllDados);
 
-  } else if(LORA_WAY == 2) {
+  } else if(LORA_WAY == LORA_STRUCT_METHOD) {
     // Armazena os dados em uma string
     String dados = String(allData.data.time, 3)         
       + "," + String(allData.data.temperature, 3)       
@@ -83,10 +83,10 @@ void setup() {
 void loop() {
   if(LoRaSerial.available() > 0) {
 
-    if(LORA_WAY == 1) {
+    if(LORA_WAY == LORA_STRING_METHOD) {
       receiveString();
 
-    } else if(LORA_WAY == 2) {
+    } else if(LORA_WAY == LORA_STRUCT_METHOD) {
       receive(&allData);
       
     }
@@ -99,10 +99,10 @@ void loop() {
     soloData.parachute = 1;
     soloMessage = "1";
 
-    if(LORA_WAY == 1) {
+    if(LORA_WAY == LORA_STRING_METHOD) {
       transmitString(soloMessage);
 
-    } else if(LORA_WAY == 2) {
+    } else if(LORA_WAY == LORA_STRUCT_METHOD) {
       transmit(&soloData);
 
     }
