@@ -10,6 +10,8 @@
 HardwareSerial GPSSerial(1);
 TinyGPSPlus gps;
 
+String gpsData;
+
 double latitude = 0, longitude = 0;
 int ano, mes, dia, hora, minuto, segundo, centesimo;
 
@@ -28,8 +30,7 @@ void setupGPS() {
 void getLatitudeAndLongitude() {
   if(GPSSerial.available()) {
     // Lê os dados recebidos do módulo GPS
-    String gpsData = GPSSerial.readStringUntil('\n');
-    Serial.println(gpsData);
+    gpsData = GPSSerial.readStringUntil('\n');
     
     // Verifica se os dados começam com "$GPGGA", que é 
     // uma sentença NMEA que contém as informações 
@@ -94,6 +95,8 @@ void saveGPSData() {
 }
 
 void printData() {
+  Serial.println(gpsData);
+  
   Serial.print("Latitude: ");
   Serial.println(latitude, 6);
   Serial.print("Longitude: ");
