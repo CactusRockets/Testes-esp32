@@ -6,10 +6,10 @@
 File myFile;
 
 void setupSd() {
-  Serial.print("Inicializando o cartão SD...");
+  Serial.println("Inicializando o cartão SD...");
   // verifica se o cartão SD está presente e se pode ser inicializado
   
-  while(!SD.begin(CS_SDPIN)) {
+  while(!SD.begin()) {
     // programa encerrado 
     Serial.println("Falha, verifique se o cartão está presente.");
   }
@@ -18,7 +18,7 @@ void setupSd() {
   myFile = SD.open("/data.txt", FILE_APPEND);                        
   // Escreve dados no arquivo
   if (myFile) {
-    Serial.print("Gravando...");
+    Serial.println("Gravando dados iniciais!");
     myFile.println("Informations");
     myFile.close();
 
@@ -31,7 +31,7 @@ void writeOnSD(String str) {
   myFile = SD.open("/data.txt", FILE_APPEND);
 
   if (myFile) {
-    Serial.println("(OK)");
+    Serial.println("(Dados Gravados!)");
     myFile.println(str);
     myFile.close();
 

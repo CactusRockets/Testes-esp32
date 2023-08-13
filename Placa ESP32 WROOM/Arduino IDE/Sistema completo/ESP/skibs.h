@@ -11,6 +11,7 @@ bool parachuteActivated = false;
 void setupSkibPins() {
   pinMode(SKIB1, OUTPUT);
   pinMode(SKIB2, OUTPUT);
+  Serial.println("Skibs configurados!");
 }
 
 void analyzeStateOfRocket() {
@@ -23,9 +24,9 @@ void analyzeStateOfRocket() {
 }
 
 void activateSkibs() {
-  Serial.println("Primeiro skib ativado!");
+  Serial.println("1º skib ativado!");
   digitalWrite(SKIB1, HIGH);
-  Serial.println("Segundo skib ativado!");
+  Serial.println("2º skib ativado!");
   digitalWrite(SKIB2, HIGH);
 
   parachuteActivated = true;

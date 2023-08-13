@@ -5,8 +5,10 @@
 
 void setupBuzzer() {
   pinMode(buzzerPIN, OUTPUT);
+  Serial.println("Buzzer configurado!");
 }
 
 void activateBuzzer() {
   digitalWrite(buzzerPIN, HIGH);
+  Serial.println("Buzzer ativado!");
 }

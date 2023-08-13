@@ -1,50 +1,89 @@
 /* CONFIGURAÇÕES GPS */
 
-#include <HardwareSerial.h>
-#include <TinyGPS.h>
+#define GPS_WAY 1
 
-// Pinos da Serial 3 do ESP32
+// Pinos da Serial 1 do ESP32
 #define RX1_PIN 15
 #define TX1_PIN 4
 
-// Usando a Serial 3 do ESP32
+// Usando a Serial 1 do ESP32
 HardwareSerial GPSSerial(1);
-TinyGPS gps;
+TinyGPSPlus gps;
 
-
-long latitude, longitude;
-unsigned long idadeInformacaoGPS;
+double latitude = 0, longitude = 0;
+int ano, mes, dia, hora, minuto, segundo, centesimo;
 
 void setupGPS() {
-  //Configuração inicial do GPS
-  GPSSerial.begin(9600, SERIAL_8N1, RX1_PIN, TX1_PIN);
+  if(GPS_WAY == 1) {
+    // Configuração inicial do GPS
+    GPSSerial.begin(9600, SERIAL_8N1, RX1_PIN, TX1_PIN);
+  } else if(GPS_WAY == 2) { 
+    //Configuração inicial do GPS
+    GPSSerial.begin(9600, SERIAL_8N1, RX1_PIN, TX1_PIN);
+  }
   while(!GPSSerial);
+  Serial.println("GPS conectado!");
+}
+
+void getLatitudeAndLongitude() {
+  if(GPSSerial.available()) {
+    // Lê os dados recebidos do módulo GPS
+    String gpsData = GPSSerial.readStringUntil('\n');
+    Serial.println(gpsData);
+    
+    // Verifica se os dados começam com "$GPGGA", que é 
+    // uma sentença NMEA que contém as informações 
+    // de latitude e longitude
+    if(gpsData.startsWith("$GPGGA")) {
+
+      // Divide os dados em campos usando a vírgula como separador
+      // Os campos estão na seguinte ordem: 
+      // $GPGGA, horário, latitude, N/S, longitude, E/W, qualidade do sinal GPS, número de satélites
+      // No nosso caso, queremos o campo de latitude (índice 2) e o campo de longitude (índice 4)
+      String fields[15];
+      int fieldIndex = 0;
+      int startPos = 0;
+      int commaPos;
+      
+      // Loop para dividir os campos separados por vírgula
+      while((commaPos = gpsData.indexOf(',', startPos)) != -1) {
+        fields[fieldIndex] = gpsData.substring(startPos, commaPos);
+        fieldIndex++;
+        startPos = commaPos + 1;
+      }
+      
+      // Extrai os valores de latitude e longitude e converte-os em valores numéricos
+      latitude = fields[2].toFloat();
+      longitude = fields[4].toFloat();
+    }
+  }
 }
 
 void getGPSData() {
   bool isNewGPSData = false;
 
-  while(GPSSerial.available()) {
+  while(GPSSerial.available() > 0) {
     char GPSData = GPSSerial.read();
     isNewGPSData = gps.encode(GPSData);
   }
 
   if(isNewGPSData) {
-    gps.get_position(&latitude, &longitude, &idadeInformacaoGPS);
-  }
-}
+    if(gps.location.isValid()) {
+      latitude = gps.location.lat();
+      longitude = gps.location.lng();
+    }
 
-void organizeGPSData() {
-
-  // Latitude e Longitude
-  if (latitude == TinyGPS::GPS_INVALID_F_ANGLE) {
-    latitude = 0;
-  }
-  if (longitude == TinyGPS::GPS_INVALID_F_ANGLE) {
-    longitude = 0;
-  }
-  if (idadeInformacaoGPS != TinyGPS::GPS_INVALID_AGE) {
-    idadeInformacaoGPS = 0;
+    if(gps.date.isValid()) {
+      mes = gps.date.month();
+      dia = gps.date.day();
+      ano = gps.date.year();
+    }
+    if(gps.time.isValid()) {
+      hora = gps.time.hour();
+      minuto = gps.time.minute();
+      segundo = gps.time.second();
+      centesimo = gps.time.centisecond();
+    }
   }
 }
 
@@ -54,20 +93,29 @@ void saveGPSData() {
   };
 }
 
+void printData() {
+  Serial.print("Latitude: ");
+  Serial.println(latitude, 6);
+  Serial.print("Longitude: ");
+  Serial.println(longitude, 6);
+
+  Serial.print("Data: ");
+  Serial.print(dia);
+  Serial.print("/");
+  Serial.print(mes);
+  Serial.print("/");
+  Serial.println(ano);
+
+  Serial.println();
+}
+
 void updateGPSData() {
-  getGPSData();
-  organizeGPSData();
+  if(GPS_WAY == 1) {
+    getGPSData();
+  } else if(GPS_WAY == 2) {
+    getLatitudeAndLongitude();
+  }
+  printData();
   saveGPSData();
 }
 
-float distanceBetweenCoodinates(
-  long latitude1, long longitude1, long latitude2, long longitude2
-) {
-  return gps.distance_between(latitude1, longitude1, latitude2, longitude2);
-}
-
-float courseBetweenCoodinates(
-  long latitude1, long longitude1, long latitude2, long longitude2
-) {
-  return gps.course_to(latitude1, longitude1, latitude2, longitude2);
-}

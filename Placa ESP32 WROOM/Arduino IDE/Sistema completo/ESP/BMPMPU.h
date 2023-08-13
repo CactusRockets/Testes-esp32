@@ -42,7 +42,7 @@ void readBMP() {
 void setupMPU() {
   if (!mpu.begin(MPU_ADRESS)) {
     Serial.println("Failed to find MPU6050 chip");
-    while (1);
+    while(1);
   }
   Serial.println("MPU6050 conectado!");
 
@@ -55,6 +55,7 @@ void readMPU() {
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
   allData.data.acceleration_Z = a.acceleration.z;
+  allData.data.altitude_MPU = 0;
 
   velocidadeAtual = 0;
 }

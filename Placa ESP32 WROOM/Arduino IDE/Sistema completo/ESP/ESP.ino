@@ -4,6 +4,8 @@
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <SD.h>
+
+#include <TinyGPSPlus.h>
 #include <HardwareSerial.h>
 
 #define ENABLE_BUZZER false
@@ -12,7 +14,7 @@
 #define ENABLE_SKIB false
 #define ENABLE_SD false
 #define ENABLE_TELEMETRY true
-#define ENABLE_GPS false
+#define ENABLE_GPS true
 
 struct PacketData {
   float time;
@@ -26,7 +28,7 @@ struct PacketData {
 };
 
 struct PacketGPSData {
-  long latitude, longitude;
+  double latitude, longitude;
 };
 
 struct AllPacketData {
@@ -40,7 +42,9 @@ struct SoloData {
 
 AllPacketData allData;
 SoloData soloData;
-String soloMessage;
+
+String soloMessage = "";
+String AllDados = "";
 
 float initial_altitude;
 
@@ -95,7 +99,6 @@ void setup() {
 }
 
 void loop() {
-
   // Armazena o tempo do microcontrolador
   allData.data.time = millis() / 1000.0;
 
@@ -115,26 +118,30 @@ void loop() {
   }
 
   analyzeStateOfRocket();
-  if(isDropping) {
-    activateSkibs();
+  if(ENABLE_SKIB) {
+    if(isDropping) {
+      activateSkibs();
+    }
   }
   if(parachuteActivated) {
     allData.data.parachute = 1;
-    activateBuzzer();
+    if(ENABLE_BUZZER) {
+      activateBuzzer();
+    }
   }
 
   // Armazena os dados em uma string
-  String dados = String(allData.data.time)         
-    + "," + String(allData.data.temperature)       
-    + "," + String(allData.data.altitude)
-    + "," + String(allData.data.variation_altitude)
-    + "," + String(allData.data.acceleration_Z)    
-    + "," + String(allData.data.altitude_MPU)      
-    + "," + String(allData.data.pressure)
-    + "," + String(allData.data.parachute);     
-  String GPSDados = String(allData.GPSData.latitude)
-    + "," + String(allData.GPSData.longitude);
-  String AllDados = dados + "," + GPSDados;
+  String dados = String(allData.data.time, 3)         
+    + "," + String(allData.data.temperature, 3)       
+    + "," + String(allData.data.altitude, 3)
+    + "," + String(allData.data.variation_altitude, 3)
+    + "," + String(allData.data.acceleration_Z, 3)    
+    + "," + String(allData.data.altitude_MPU, 3)      
+    + "," + String(allData.data.pressure, 3)
+    + "," + String(allData.data.parachute, 3);     
+  String GPSDados = String(allData.GPSData.latitude, 3)
+    + "," + String(allData.GPSData.longitude, 3);
+  AllDados = dados + "," + GPSDados;
 
   Serial.println(AllDados);
 
@@ -149,5 +156,5 @@ void loop() {
     }
   }
 
-  delay(500);
+  delay(250);
 }

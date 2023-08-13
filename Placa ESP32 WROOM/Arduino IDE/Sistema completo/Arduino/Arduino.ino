@@ -30,9 +30,11 @@ struct SoloData {
   int parachute; 
 };
 
+String soloMessage = "";
+String AllDados = "";
+
 AllPacketData allData;
 SoloData soloData;
-String message;
 
 #include "telemetry.h"
 
@@ -45,28 +47,34 @@ void clearData() {
 }
 
 void printData() {
-  // Armazena os dados em uma string
-  String dados = String(allData.data.time, 3)         
-    + "," + String(allData.data.temperature, 3)       
-    + "," + String(allData.data.altitude, 3)          
-    + "," + String(allData.data.variation_altitude, 3)
-    + "," + String(allData.data.acceleration_Z, 3)    
-    + "," + String(allData.data.altitude_MPU, 3)      
-    + "," + String(allData.data.pressure, 3)
-    + "," + String(allData.data.parachute);     
-  String GPSDados = String(allData.GPSData.latitude, 3)
-    + "," + String(allData.GPSData.longitude, 3);
+  if(LORA_WAY == 1) {
+    Serial.println(AllDados);
 
-  String AllDados = dados + "," + GPSDados;
-  Serial.println(AllDados);
+  } else if(LORA_WAY == 2) {
+    // Armazena os dados em uma string
+    String dados = String(allData.data.time, 3)         
+      + "," + String(allData.data.temperature, 3)       
+      + "," + String(allData.data.altitude, 3)          
+      + "," + String(allData.data.variation_altitude, 3)
+      + "," + String(allData.data.acceleration_Z, 3)    
+      + "," + String(allData.data.altitude_MPU, 3)      
+      + "," + String(allData.data.pressure, 3)
+      + "," + String(allData.data.parachute);     
+    String GPSDados = String(allData.GPSData.latitude, 3)
+      + "," + String(allData.GPSData.longitude, 3);
+
+    AllDados = dados + "," + GPSDados;
+    Serial.println(AllDados);
+  }
 }
-
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("");
+  Serial.println("Serial inicializada!");
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(M0, OUTPUT);
+  pinMode(M1, OUTPUT);
 
   clearData();
   setupTelemetry();
@@ -74,14 +82,30 @@ void setup() {
 
 void loop() {
   if(LoRaSerial.available() > 0) {
-    receiveString();
-    Serial.println(message);
+
+    if(LORA_WAY == 1) {
+      receiveString();
+
+    } else if(LORA_WAY == 2) {
+      receive(&allData);
+      
+    }
+    printData();
   }
 
   valueButton = digitalRead(BUTTON_PIN);
   if(valueButton == LOW) {
+
     soloData.parachute = 1;
-    transmit(&soloData);
+    soloMessage = "1";
+
+    if(LORA_WAY == 1) {
+      transmitString(soloMessage);
+
+    } else if(LORA_WAY == 2) {
+      transmit(&soloData);
+
+    }
   }
 }
 
