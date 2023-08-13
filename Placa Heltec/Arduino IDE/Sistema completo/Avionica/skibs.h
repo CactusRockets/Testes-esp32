@@ -17,7 +17,7 @@ void analyzeStateOfRocket() {
   if((maximumAltitudeValue - altitudeAtual) > rangeMaximumAltitudeValue) {
     isDropping = true;
   }
-  if(aux) {
+  if(soloMessage) {
     isDropping = true;
   }
 }

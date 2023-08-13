@@ -11,7 +11,7 @@
 const uint64_t pipeOut =  0xE8E8F0F0E1LL;
 const byte address[6] =  "00001";
 
-bool aux = false;
+bool soloMessage = false;
 RF24 radio(CE_PIN, CS_NRFPIN);
 
 void setupNRF() {
@@ -32,9 +32,9 @@ void transmit() {
 void receive() {
   radio.startListening();
   if(radio.available()) {        
-    radio.read(&aux, sizeof(aux));
+    radio.read(&soloMessage, sizeof(soloMessage));
 
     Serial.print("Valor do Paraquedas:");
-    Serial.println(aux);
+    Serial.println(soloMessage);
   }
 }
