@@ -112,14 +112,14 @@ void loop() {
   }
 
   // Armazena os dados em uma string
-  String dados = String(data.time, 3)         
-    + "," + String(data.temperature, 3)       
-    + "," + String(data.altitude, 3)          
+  String dados = String(data.time, 3)
+    + "," + String(data.temperature, 3)
+    + "," + String(data.altitude, 3)
     + "," + String(data.variation_altitude, 3)
-    + "," + String(data.acceleration_Z, 3)    
-    + "," + String(data.altitude_MPU, 3)      
-    + "," + String(data.pressure, 3)          
-    + "," + String(data.parachute);           
+    + "," + String(data.acceleration_Z, 3)
+    + "," + String(data.altitude_MPU, 3)
+    + "," + String(data.pressure, 3)
+    + "," + String(data.parachute);
   Serial.println(dados);
 
   if(ENABLE_SD) {
