@@ -120,10 +120,15 @@ void loop() {
   analyzeStateOfRocket();
   if(ENABLE_SKIBS) {
     if(isDropping) {
-      activateSkibs();
+      if(parachute1Activated == false) {
+        activateStage1();
+      }
+      if(millis() - timeForStage1 >= DELAY_FOR_STAGE2) {
+        activateStage2();
+      }
     }
   }
-  if(parachuteActivated) {
+  if(parachute1Activated || parachute2Activated) {
     allData.data.parachute = 1;
     if(ENABLE_BUZZER) {
       activateBuzzer();
