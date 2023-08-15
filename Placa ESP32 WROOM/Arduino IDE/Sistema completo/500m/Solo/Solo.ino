@@ -73,8 +73,6 @@ void setup() {
   Serial.println("Serial inicializada!");
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
-  pinMode(M0, OUTPUT);
-  pinMode(M1, OUTPUT);
 
   clearData();
   setupTelemetry();

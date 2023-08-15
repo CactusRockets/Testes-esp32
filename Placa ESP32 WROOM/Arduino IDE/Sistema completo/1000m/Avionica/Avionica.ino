@@ -123,7 +123,7 @@ void loop() {
       if(parachute1Activated == false) {
         activateStage1();
       }
-      if(millis() - timeForStage1 >= DELAY_FOR_STAGE2) {
+      if((altitudeForStage1 - METERS_DIFFERENCE) > altitudeAtual) {
         activateStage2();
       }
     }

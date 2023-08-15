@@ -1,5 +1,5 @@
-#define PIN1 16
-#define PIN2 17
+#define PIN1 33
+#define PIN2 32
 
 void setup() {
   pinMode(PIN1, OUTPUT); 

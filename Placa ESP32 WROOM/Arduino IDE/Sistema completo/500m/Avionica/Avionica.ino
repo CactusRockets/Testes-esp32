@@ -12,7 +12,7 @@
 #define ENABLE_BMP true
 #define ENABLE_MPU true
 #define ENABLE_SKIBS true
-#define ENABLE_SD true
+#define ENABLE_SD false
 #define ENABLE_TELEMETRY true
 #define ENABLE_GPS true
 
@@ -168,5 +168,6 @@ void loop() {
     }
   }
 
-  delay(250);
+  // É bom que seja um múltiplo de 500 milisegundos
+  delay(500);
 }

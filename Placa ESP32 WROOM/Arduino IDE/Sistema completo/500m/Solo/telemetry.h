@@ -38,7 +38,7 @@ void modoReceptor() {
 
 void modoTransmissor() {
   // Configurações para modo Transmissor
-  digitalWrite(M0, HIGH);
+  digitalWrite(M0, LOW);
   digitalWrite(M1, LOW);
 }
 
