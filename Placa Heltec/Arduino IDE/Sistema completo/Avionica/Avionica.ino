@@ -7,12 +7,12 @@
 #include <Adafruit_Sensor.h>
 #include <SD.h>
 
-#define ENABLE_BUZZER true
-#define ENABLE_BMP true
+#define ENABLE_BUZZER false
+#define ENABLE_BMP false
 #define ENABLE_MPU false
-#define ENABLE_SKIB true
-#define ENABLE_SD false
-#define ENABLE_NRF true
+#define ENABLE_SKIB false
+#define ENABLE_SD true
+#define ENABLE_NRF false
 
 #define SKIB1 16
 #define SKIB2 17

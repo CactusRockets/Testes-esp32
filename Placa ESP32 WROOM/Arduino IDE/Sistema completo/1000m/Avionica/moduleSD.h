@@ -9,7 +9,7 @@ void setupSd() {
   Serial.println("Inicializando o cartão SD...");
   // verifica se o cartão SD está presente e se pode ser inicializado
   
-  while(!SD.begin()) {
+  while(!SD.begin(CS_SDPIN)) {
     // programa encerrado 
     Serial.println("Falha, verifique se o cartão está presente.");
   }

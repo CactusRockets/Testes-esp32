@@ -26,17 +26,17 @@ void setup() {
 
 
   
-  if(!bmp.begin(BMP_ADRESS)) {
-    Serial.println("BMP not working ...");
-    while(1);
-  }
-  Serial.println("BMP conectado!");
+  // if(!bmp.begin(BMP_ADRESS)) {
+  //   Serial.println("BMP not working ...");
+  //   while(1);
+  // }
+  // Serial.println("BMP conectado!");
 
-  bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,
-                  Adafruit_BMP280::SAMPLING_X2,
-                  Adafruit_BMP280::SAMPLING_X16,
-                  Adafruit_BMP280::FILTER_X16,
-                  Adafruit_BMP280::STANDBY_MS_500);
+  // bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,
+  //                 Adafruit_BMP280::SAMPLING_X2,
+  //                 Adafruit_BMP280::SAMPLING_X16,
+  //                 Adafruit_BMP280::FILTER_X16,
+  //                 Adafruit_BMP280::STANDBY_MS_500);
 
 
 
@@ -76,13 +76,13 @@ void loop() {
 
   
 
-  float number = bmp.readAltitude(1013);
-  Serial.println("BMP:");
-  Serial.println(number);
-  Serial.println();
+  // float number = bmp.readAltitude(1013);
+  // Serial.println("BMP:");
+  // Serial.println(number);
+  // Serial.println();
 
 
 
   contador++;
-  delay(3000);
+  delay(100);
 }
