@@ -30,16 +30,23 @@ void analyzeStateOfRocket() {
 void activateSkibs() {
   Serial.println("1º skib ativado!");
   digitalWrite(SKIB1, HIGH);
+  delay(250);
+  Serial.println("1º skib desativado!");
+  digitalWrite(SKIB1, LOW);
+
   Serial.println("2º skib ativado!");
   digitalWrite(SKIB2, HIGH);
+  delay(250);
+  Serial.println("2º skib desativado!");
+  digitalWrite(SKIB2, LOW);
 
   timeForStage = millis();
   parachuteActivated = true;
 }
 
 void deactivateSkibs() {
-  Serial.println("1º skib desativado!");
+  // Serial.println("1º skib desativado!");
   digitalWrite(SKIB1, LOW);
-  Serial.println("2º skib desativado!");
+  // Serial.println("2º skib desativado!");
   digitalWrite(SKIB2, LOW);
 }

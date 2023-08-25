@@ -11,6 +11,7 @@ void setupSd() {
   
   while(!SD.begin(CS_SDPIN)) {
     // programa encerrado 
+    activateBuzzer();
     Serial.println("Falha, verifique se o cartão está presente.");
   }
 

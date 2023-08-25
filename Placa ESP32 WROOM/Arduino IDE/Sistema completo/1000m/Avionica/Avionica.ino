@@ -12,9 +12,9 @@
 
 #define ENABLE_BUZZER true
 #define ENABLE_BMP true
-#define ENABLE_MPU true
+#define ENABLE_MPU false
 #define ENABLE_SKIBS true
-#define ENABLE_SD false
+#define ENABLE_SD true
 #define ENABLE_TELEMETRY false
 #define ENABLE_GPS true
 
@@ -59,9 +59,9 @@ String buffer = "";
 bool alavancaAcionada = false;
 float initial_altitude;
 
+#include "buzzer.h"
 #include "telemetry.h"
 #include "moduleSD.h"
-#include "buzzer.h"
 #include "BMPMPU.h"
 #include "skibs.h"
 #include "GPS.h"
@@ -76,14 +76,14 @@ void SensorTask (void * parameters) {
     // Serial.print(dt);
     // Serial.println(" ms (task period)");
 
-    // Medições MPU6050
-    if(ENABLE_MPU) {
-      readMPU();
-    }
-
     // Medições BMP390
     if(ENABLE_BMP) {
       readBMP();
+    }
+
+    // Medições MPU6050
+    if(ENABLE_MPU) {
+      readMPU();
     }
 
     if(ENABLE_MPU) {
@@ -102,6 +102,8 @@ void setup() {
   AllDados.reserve(1500);
   // Inicializa a serial
   Serial.begin(115200);
+
+  pinMode(ALAVANCA, INPUT);
 
   if(ENABLE_BUZZER) {
     setupBuzzer();
@@ -144,9 +146,15 @@ void setup() {
 }
 
 void loop() {
-  // if(digitalRead(ALAVANCA) == HIGH) {
-  if(1) {
+  if(digitalRead(ALAVANCA) == HIGH) {
     if(alavancaAcionada == false) {
+      activateBuzzer();
+      delay(300);
+      desactivateBuzzer();
+      delay(300);
+      activateBuzzer();
+      delay(300);
+      desactivateBuzzer();
       initial_altitude = bmp.readAltitude(1017.3);
     }
     alavancaAcionada = true;
@@ -162,9 +170,10 @@ void loop() {
         }
         if(parachute1Activated && millis() - timeForStage1 >= SKIB_TIME) {
           deactivateStage1();
+          desactivateBuzzer();
         }
 
-        if(parachute1Activated && parachute2Activated == false && allData.data.variationAltitude <= 500) {
+        if(parachute1Activated && parachute2Activated == false && allData.data.variationAltitude <= SECOND_APOGEE && maximumAltitudeValue >= SECOND_APOGEE) {
           activateStage2();
         }
         if(parachute2Activated && millis() - timeForStage2 >= SKIB_TIME) {

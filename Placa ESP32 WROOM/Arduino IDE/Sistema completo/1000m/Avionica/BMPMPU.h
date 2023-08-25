@@ -2,6 +2,8 @@
 #define BMP_ADRESS 0x77
 #define MPU_ADRESS 0x68
 
+#define SECOND_APOGEE 2
+
 float velocidadeAtual = 0;
 
 float maximumAltitudeValue = 0;
@@ -35,8 +37,8 @@ void readBMP() {
   allData.data.pressure = bmp.pressure;
   allData.data.altitude = bmp.readAltitude(1017.3);
   
-  // altitudeAtual = allData.data.altitude;
-  altitudeAtual = kalmanHeight.Altitude;
+  if(ENABLE_MPU) altitudeAtual = kalmanHeight.Altitude;
+  else altitudeAtual = allData.data.altitude;
 
   if(altitudeAtual > maximumAltitudeValue) {
     maximumAltitudeValue = altitudeAtual;
