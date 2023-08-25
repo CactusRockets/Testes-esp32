@@ -24,11 +24,10 @@ void MPU6050::calcAccAngle() {
   accelAngleY = atan2(accelX, sqrt(accelZ * accelZ + accelY * accelY)) * -180 / PI;
 }
 
-MPU6050::MPU6050(int _ADR, float _CONST, float accel) {
+MPU6050::MPU6050(int _ADR, float accel) {
   CALIBRATED = false;
 
   ADR = _ADR;
-  CONST = _CONST;
 
   LAUNCH_ACCEL_IN_G = accel;
   

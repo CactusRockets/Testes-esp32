@@ -10,7 +10,7 @@
 class MPU6050
 {
 	public:
-	  MPU6050(int _ADR = 0x68, float _CONST = 0.02, float accel=10);
+	  MPU6050(int _ADR = 0x68, float accel=10);
 		bool begin();
 		void calibrate(int ITERATIONS = 3000);
     void setAccelOffset(int16_t aX, int16_t aY, int16_t aZ);
@@ -56,7 +56,6 @@ class MPU6050
 		double GRAVITY;
 	private:
 		bool CALIBRATED;
-		double CONST;
 		int ADR;
 		
 };
