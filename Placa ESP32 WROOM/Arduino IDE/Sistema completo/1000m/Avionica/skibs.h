@@ -9,7 +9,7 @@
 #define SKIB_TIME 250
 
 // Em metros
-#define HEIGHT_FOR_2_STAGE 500
+#define HEIGHT_FOR_2_STAGE 2
 
 bool isDropping = false;
 

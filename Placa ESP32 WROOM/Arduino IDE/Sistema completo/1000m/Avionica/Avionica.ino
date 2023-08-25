@@ -170,10 +170,13 @@ void loop() {
         }
         if(parachute1Activated && millis() - timeForStage1 >= SKIB_TIME) {
           deactivateStage1();
+        }
+
+        if(parachute1Activated && millis() - timeForStage1 >= 1000) {
           desactivateBuzzer();
         }
 
-        if(parachute1Activated && parachute2Activated == false && allData.data.variationAltitude <= SECOND_APOGEE && maximumAltitudeValue >= SECOND_APOGEE) {
+        if(parachute1Activated && parachute2Activated == false && allData.data.variationAltitude <= HEIGHT_FOR_2_STAGE && maximumAltitudeValue >= HEIGHT_FOR_2_STAGE) {
           activateStage2();
         }
         if(parachute2Activated && millis() - timeForStage2 >= SKIB_TIME) {

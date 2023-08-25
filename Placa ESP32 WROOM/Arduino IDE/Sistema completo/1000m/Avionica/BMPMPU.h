@@ -2,8 +2,6 @@
 #define BMP_ADRESS 0x77
 #define MPU_ADRESS 0x68
 
-#define SECOND_APOGEE 2
-
 float velocidadeAtual = 0;
 
 float maximumAltitudeValue = 0;
