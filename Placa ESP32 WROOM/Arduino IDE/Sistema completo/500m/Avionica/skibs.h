@@ -5,8 +5,12 @@
 #define rangeMaximumAltitudeValue 2
 #define rangeMinimumVelocityValue -5
 
+#define DELAY_FOR_STAGE 250
+
 bool isDropping = false;
 bool parachuteActivated = false;
+
+double timeForStage = 0;
 
 void setupSkibPins() {
   pinMode(SKIB1, OUTPUT);
@@ -29,5 +33,13 @@ void activateSkibs() {
   Serial.println("2º skib ativado!");
   digitalWrite(SKIB2, HIGH);
 
+  timeForStage = millis();
   parachuteActivated = true;
+}
+
+void deactivateSkibs() {
+  Serial.println("1º skib desativado!");
+  digitalWrite(SKIB1, LOW);
+  Serial.println("2º skib desativado!");
+  digitalWrite(SKIB2, LOW);
 }

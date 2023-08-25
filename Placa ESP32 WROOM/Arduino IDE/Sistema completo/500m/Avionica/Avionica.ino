@@ -1,3 +1,5 @@
+// 500m
+
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_BMP280.h>
@@ -8,11 +10,13 @@
 #include <TinyGPSPlus.h>
 #include <HardwareSerial.h>
 
+#define ALAVANCA 26
+
 #define ENABLE_BUZZER true
 #define ENABLE_BMP true
 #define ENABLE_MPU true
 #define ENABLE_SKIBS true
-#define ENABLE_SD false
+#define ENABLE_SD true
 #define ENABLE_TELEMETRY true
 #define ENABLE_GPS true
 
@@ -46,6 +50,7 @@ SoloData soloData;
 String soloMessage = "";
 String AllDados = "";
 
+bool alavancaAcionada = false;
 float initial_altitude;
 
 #include "telemetry.h"
@@ -59,6 +64,8 @@ void setup() {
   // Inicializa a serial
   Serial.begin(9600);
   Serial.println("");
+
+  pinMode(ALAVANCA, INPUT);
 
   if(ENABLE_BUZZER) {
     setupBuzzer();
@@ -94,80 +101,91 @@ void setup() {
   };
   soloData = { 0 };
 
-  initial_altitude = bmp.readAltitude(1017.3);
+  
   delay(1000);
 }
 
 void loop() {
-  // Armazena o tempo do microcontrolador
-  allData.data.time = millis() / 1000.0;
-
-  // Medições BMP280
-  if(ENABLE_BMP) {
-    readBMP();
-  }
-
-  // Medições MPU6050
-  if(ENABLE_MPU) {
-    readMPU();
-  }
-
-  // Medições GPS
-  if(ENABLE_GPS) {
-    updateGPSData();
-  }
-
-  analyzeStateOfRocket();
-  if(ENABLE_SKIBS) {
-    if(isDropping) {
-      activateSkibs();
+  if(digitalRead(ALAVANCA) == HIGH) {
+    if(alavancaAcionada == false) {
+      initial_altitude = bmp.readAltitude(1017.3);
     }
-  }
-  if(parachuteActivated) {
-    allData.data.parachute = 1;
-    if(ENABLE_BUZZER) {
-      activateBuzzer();
+    alavancaAcionada = true;
+    // Armazena o tempo do microcontrolador
+    allData.data.time = millis() / 1000.0;
+
+    // Medições BMP280
+    if(ENABLE_BMP) {
+      readBMP();
     }
-  }
 
-  // Armazena os dados em uma string
-  String dados = String(allData.data.time, 3)         
-    + "," + String(allData.data.temperature, 3)       
-    + "," + String(allData.data.altitude, 3)
-    + "," + String(allData.data.variation_altitude, 3)
-    + "," + String(allData.data.acceleration_Z, 3)    
-    + "," + String(allData.data.altitude_MPU, 3)      
-    + "," + String(allData.data.pressure, 3)
-    + "," + String(allData.data.parachute, 3);     
-  String GPSDados = String(allData.GPSData.latitude, 3)
-    + "," + String(allData.GPSData.longitude, 3);
-  AllDados = dados + "," + GPSDados;
-
-  Serial.println(AllDados);
-
-  if(ENABLE_SD) {
-    writeOnSD(AllDados);
-  }
-
-  if(ENABLE_TELEMETRY) {
-    if(LORA_WAY == LORA_STRING_METHOD) {
-      transmitString(AllDados);
-
-    } else if(LORA_WAY == LORA_STRUCT_METHOD) {
-      transmit(&allData);
-
+    // Medições MPU6050
+    if(ENABLE_MPU) {
+      readMPU();
     }
-    if(LoRaSerial.available() > 0) {
-      if(LORA_WAY == LORA_STRING_METHOD) {
-        receiveString();
 
-      } else if(LORA_WAY == LORA_STRUCT_METHOD) {
-        receive(&soloData);
+    // Medições GPS
+    if(ENABLE_GPS) {
+      updateGPSData();
+    }
 
+    analyzeStateOfRocket();
+    if(ENABLE_SKIBS) {
+      if(isDropping) {
+        if(parachuteActivated == false) {
+          activateSkibs();
+        }
+        if(millis() - timeForStage >= DELAY_FOR_STAGE) {
+          deactivateSkibs();
+        }
       }
     }
-  }
+    if(parachuteActivated) {
+      allData.data.parachute = 1;
+      if(ENABLE_BUZZER) {
+        activateBuzzer();
+      }
+    }
 
-  // É bom que seja um múltiplo de 500 milisegundos
-  delay(500);
+    // Armazena os dados em uma string
+    String dados = String(allData.data.time, 3)         
+      + "," + String(allData.data.temperature, 3)       
+      + "," + String(allData.data.altitude, 3)
+      + "," + String(allData.data.variation_altitude, 3)
+      + "," + String(allData.data.acceleration_Z, 3)    
+      + "," + String(allData.data.altitude_MPU, 3)      
+      + "," + String(allData.data.pressure, 3)
+      + "," + String(allData.data.parachute, 3);     
+    String GPSDados = String(allData.GPSData.latitude, 3)
+      + "," + String(allData.GPSData.longitude, 3);
+    AllDados = dados + "," + GPSDados;
+
+    Serial.println(AllDados);
+
+    if(ENABLE_SD) {
+      writeOnSD(AllDados);
+    }
+
+    if(ENABLE_TELEMETRY) {
+      if(LORA_WAY == LORA_STRING_METHOD) {
+        transmitString(AllDados);
+
+      } else if(LORA_WAY == LORA_STRUCT_METHOD) {
+        transmit(&allData);
+
+      }
+      if(LoRaSerial.available() > 0) {
+        if(LORA_WAY == LORA_STRING_METHOD) {
+          receiveString();
+
+        } else if(LORA_WAY == LORA_STRUCT_METHOD) {
+          receive(&soloData);
+
+        }
+      }
+    }
+
+    // É bom que seja um múltiplo de 500 milisegundos
+    delay(500);
+  } 
 }

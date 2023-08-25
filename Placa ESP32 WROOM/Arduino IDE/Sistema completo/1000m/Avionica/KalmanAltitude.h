@@ -24,11 +24,12 @@ class KalmanAltitude {
       I = {1, 0, 0, 1};
       /*
       Q = Matriz de covariância do ruído do processo, representa o erro inerente do processo,
-      no nosso caso é assumido 10cm/s^2 de desvio padrao pro acelerometro
+      no nosso caso é assumido 0.7m/s^2 de desvio padrao pro acelerometro
       */
-      Q = G * ~G * 10 * 10;
-      /*R = Incerteza da mediçao, 30cm de desvio padrao é assumido aqui*/
-      R = {30 * 30};
+      float desvioPadraoAcc = 0.7;
+      Q = (G * ~G) * (desvioPadraoAcc * desvioPadraoAcc);
+      /*R = Incerteza da mediçao, 0.25m de desvio padrao é assumido aqui*/
+      R = {0.25 * 0.25};
       /*P = Matriz de covariância de erro de estimativa, ela fornece o erro para a estimativa corrente*/
       P = {0, 0, 0, 0};
       /*S = Vetor de estados, [altitude_kalman, velocidade_kalman]*/
@@ -41,7 +42,8 @@ class KalmanAltitude {
       G = {0.5 * dt * dt, dt};
       H = {1, 0};
       I = {1, 0, 0, 1};
-      Q = G * ~G * 10 * 10;
+      float desvioPadraoAcc = 0.7;
+      Q = G * ~G * desvioPadraoAcc * desvioPadraoAcc;
 
       /*Acc é a aceleracao, no nosso caso aceleracao vertical medida pelo acelerômetro*/
       Acc = {AccZInertial};
@@ -51,7 +53,7 @@ class KalmanAltitude {
       /*L = Somente uma matriz de auxilio pro calculo*/
       L=H*P*~H+R;
       /*K é a Matriz de ganho de Kalman, ela que decide que ajusta as estimativas*/
-      K=P*~H*Invert(L);
+      K=P*~H*Inverse(L);
       /*M = Matriz que guarda a altura com base no barometro*/
       M = {AltitudeBarometer};
       S=S+K*(M-H*S);

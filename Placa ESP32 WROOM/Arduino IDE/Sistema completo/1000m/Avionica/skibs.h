@@ -5,15 +5,19 @@
 #define rangeMaximumAltitudeValue 2
 #define rangeMinimumVelocityValue -5
 
-// Metros de diferença para o o acionamento do segundo estágio
-#define METERS_DIFFERENCE 500
+// Em millisegundos
+#define SKIB_TIME 250
+
+// Em metros
+#define HEIGHT_FOR_2_STAGE 500
 
 bool isDropping = false;
 
 bool parachute1Activated = false;
 bool parachute2Activated = false;
 
-double altitudeForStage1 = 0;
+double timeForStage1 = 0;
+double timeForStage2 = 0;
 
 void setupSkibPins() {
   pinMode(SKIB1, OUTPUT);
@@ -31,16 +35,27 @@ void analyzeStateOfRocket() {
 }
 
 void activateStage1() {
-  Serial.println("1º skib ativado!");
   digitalWrite(SKIB1, HIGH);
+  Serial.println("1 Skib ativado!");
 
-  altitudeForStage1 = altitudeAtual;
+  timeForStage1 = millis();
   parachute1Activated = true;
 }
 
 void activateStage2() {
-  Serial.println("2º skib ativado!");
   digitalWrite(SKIB2, HIGH);
+  Serial.println("2 Skib ativado!");
 
+  timeForStage2 = millis();
   parachute2Activated = true;
+}
+
+void deactivateStage1() {
+  digitalWrite(SKIB1, LOW);
+  Serial.println("1 Skib desativado!");
+}
+
+void deactivateStage2() {
+  digitalWrite(SKIB2, LOW);
+  Serial.println("2 Skib desativado!");
 }
