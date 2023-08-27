@@ -19,6 +19,10 @@
 #define ENABLE_GPS true
 
 #define ALAVANCA 26
+#define ALAVANCA_BEEP_TIME 300
+
+double alavancaTime = 0;
+bool isBeeping = false;
 
 struct PacketData {
   float time;
@@ -67,34 +71,6 @@ float initial_altitude;
 #include "GPS.h"
 
 
-
-void SensorTask (void * parameters) {
-  double end=0;
-  for(;;) {
-    double dt = millis()-end;
-    end = millis();
-    // Serial.print(dt);
-    // Serial.println(" ms (task period)");
-
-    // Medições BMP390
-    if(ENABLE_BMP) {
-      readBMP();
-    }
-
-    // Medições MPU6050
-    if(ENABLE_MPU) {
-      readMPU();
-    }
-
-    if(ENABLE_MPU) {
-      kalmanHeight.update(allData.data.acceleration_Z, allData.data.altitude, dt / 1000.0);
-    }
-
-    vTaskDelay(1);
-  }
-  vTaskDelete( NULL );
-}
-
 void setup() {
   Wire.begin();
   Wire.setClock(400000);
@@ -142,22 +118,38 @@ void setup() {
 
   delay(1000);
   initial_altitude = bmp.readAltitude(1017.3);
-  xTaskCreate(SensorTask, "SensorTask", 5000, NULL, 1, 0);
 }
 
 void loop() {
   if(digitalRead(ALAVANCA) == HIGH) {
     if(alavancaAcionada == false) {
-      activateBuzzer();
-      delay(300);
-      desactivateBuzzer();
-      delay(300);
-      activateBuzzer();
-      delay(300);
-      desactivateBuzzer();
-      initial_altitude = bmp.readAltitude(1017.3);
+      initial_altitude = bmp.readAltitude(SEA_LOCAL_PRESSURE);
     }
     alavancaAcionada = true;
+
+
+    // Medições BMP390
+    if(ENABLE_BMP) {
+      readBMP();
+    }
+
+    // Medições MPU6050
+    if(ENABLE_MPU) {
+      readMPU();
+    }
+
+
+    // Beep Intermitente logic
+    if(millis() - alavancaTime >= ALAVANCA_BEEP_TIME) {
+      alavancaTime = millis();
+      isBeeping = !isBeeping;
+      
+      if(isBeeping) {
+        activateBuzzer();
+      } else {
+        desactivateBuzzer();
+      }
+    }
 
     // Armazena o tempo do microcontrolador
     allData.data.time = millis() / 1000.0;
@@ -165,20 +157,31 @@ void loop() {
     analyzeStateOfRocket();
     if(ENABLE_SKIBS) {
       if(isDropping) {
-        if(parachute1Activated == false) {
-          activateStage1();
+        if((maximumAltitudeValue - initial_altitude) > (HEIGHT_FOR_2_STAGE + GAP_BETWEEN_ACTIVATIONS)) {
+          if(parachute1Activated == false) {
+            activateStage1();
+          }
+
+          if((altitudeAtual - initial_altitude) <= HEIGHT_FOR_2_STAGE) {
+            activateStage2();
+          }
         }
+
+        if((maximumAltitudeValue - initial_altitude) <= HEIGHT_FOR_2_STAGE) {
+          if(parachute1Activated == false) {
+            activateStage1();
+          }
+
+          if(parachute1Activated && parachute2Activated == false && 
+            (millis() - timeForStage1) > TIME_BETWEEN_ACTIVATIONS) {
+              activateStage2();
+          }
+        }
+
         if(parachute1Activated && millis() - timeForStage1 >= SKIB_TIME) {
           deactivateStage1();
         }
 
-        if(parachute1Activated && millis() - timeForStage1 >= 1000) {
-          desactivateBuzzer();
-        }
-
-        if(parachute1Activated && parachute2Activated == false && allData.data.variationAltitude <= HEIGHT_FOR_2_STAGE && maximumAltitudeValue >= HEIGHT_FOR_2_STAGE) {
-          activateStage2();
-        }
         if(parachute2Activated && millis() - timeForStage2 >= SKIB_TIME) {
           deactivateStage2();
         }
@@ -186,9 +189,10 @@ void loop() {
     }
     if(parachute1Activated) {
       allData.data.parachute = 1;
-      if(ENABLE_BUZZER) {
-        activateBuzzer();
-      }
+    }
+
+    if(parachute2Activated) {
+      allData.data.parachute = 2;
     }
 
     //Medições GPS
@@ -211,7 +215,6 @@ void loop() {
 
     if(ENABLE_SD) {
       writeOnSD(buffer);
-      //buffer.clear();
     }
 
     if(ENABLE_TELEMETRY) {

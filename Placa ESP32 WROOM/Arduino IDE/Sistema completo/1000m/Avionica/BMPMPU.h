@@ -2,6 +2,8 @@
 #define BMP_ADRESS 0x77
 #define MPU_ADRESS 0x68
 
+#define SEA_LOCAL_PRESSURE 1019.0
+
 float velocidadeAtual = 0;
 
 float maximumAltitudeValue = 0;
@@ -27,13 +29,13 @@ void setupBMP() {
 
 void readBMP() {
   if (!bmp.performReading()) {
-    //Serial.println("Failed to read");
+    Serial.println("Failed to read BMP");
     return;
   }
 
   allData.data.temperature = bmp.temperature;
   allData.data.pressure = bmp.pressure;
-  allData.data.altitude = bmp.readAltitude(1017.3);
+  allData.data.altitude = bmp.readAltitude(SEA_LOCAL_PRESSURE);
   
   if(ENABLE_MPU) altitudeAtual = kalmanHeight.Altitude;
   else altitudeAtual = allData.data.altitude;

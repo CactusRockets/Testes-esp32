@@ -2,14 +2,20 @@
 
 #define SKIB1 13
 #define SKIB2 12
-#define rangeMaximumAltitudeValue 2
+#define rangeMaximumAltitudeValue 20
 #define rangeMinimumVelocityValue -5
+
+// Em ms
+#define TIME_BETWEEN_ACTIVATIONS 8000
+
+// Em metros
+#define GAP_BETWEEN_ACTIVATIONS 150
+
+// Em metros
+#define HEIGHT_FOR_2_STAGE 500
 
 // Em millisegundos
 #define SKIB_TIME 250
-
-// Em metros
-#define HEIGHT_FOR_2_STAGE 2
 
 bool isDropping = false;
 

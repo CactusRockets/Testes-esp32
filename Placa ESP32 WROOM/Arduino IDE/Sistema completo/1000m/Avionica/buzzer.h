@@ -10,10 +10,10 @@ void setupBuzzer() {
 
 void activateBuzzer() {
   digitalWrite(buzzerPIN, HIGH);
-  Serial.println("Buzzer ativado!");
+  //Serial.println("Buzzer ativado!");
 }
 
 void desactivateBuzzer() {
   digitalWrite(buzzerPIN, LOW);
-  Serial.println("Buzzer desativado!");
+  //Serial.println("Buzzer desativado!");
 }
