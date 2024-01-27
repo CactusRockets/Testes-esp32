@@ -1,6 +1,5 @@
 /* CONFIGURAÇÕES CARTÃO MICROSD */
 
-#include <SD.h>
 #define CS_SDPIN 5
 
 File myFile;

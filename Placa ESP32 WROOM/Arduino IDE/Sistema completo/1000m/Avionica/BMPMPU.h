@@ -61,6 +61,7 @@ void setupMPU() {
 void readMPU() {
   mpu.update();
 
-  allData.data.acceleration_Z =  mpu.accWorldFrameZ * 9.80665; // Transform g to m/s^2
+  // Transforma g para m/s^2
+  allData.data.acceleration_Z =  mpu.accWorldFrameZ * 9.80665;
   velocidadeAtual = mpu.velZ * 9.80665;
 }

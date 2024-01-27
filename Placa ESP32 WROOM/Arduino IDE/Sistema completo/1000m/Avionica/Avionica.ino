@@ -12,7 +12,7 @@
 
 #define ENABLE_BUZZER true
 #define ENABLE_BMP true
-#define ENABLE_MPU false
+#define ENABLE_MPU true
 #define ENABLE_SKIBS true
 #define ENABLE_SD true
 #define ENABLE_TELEMETRY false
@@ -212,6 +212,8 @@ void loop() {
     String GPSDados = String(allData.GPSData.latitude, 3)
       + "," + String(allData.GPSData.longitude, 3);
     AllDados = dados + "," + GPSDados;
+
+    Serial.println(AllDados);
 
     if(ENABLE_SD) {
       writeOnSD(buffer);

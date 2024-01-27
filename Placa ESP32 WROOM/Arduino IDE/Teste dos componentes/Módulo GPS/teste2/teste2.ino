@@ -28,14 +28,20 @@ void setup()
 void loop()
 {
   // TODA VEZ QUE FOR LIDA UMA NOVA SENTENÇA NMEA, CHAMAREMOS A FUNÇÃO displayInfo() PARA MOSTRAR OS DADOS NA TELA
-  while(gpsSerial.available() > 0)
-    if(gps.encode(gpsSerial.read()))
+  while(gpsSerial.available() > 0) {
+
+    char value = gpsSerial.read();
+    Serial.print(value);
+
+    if(gps.encode(value)) {
       displayInfo();
+    }
+  }
 
   // SE EM ALGUNS SEGUNDOS NÃO FOR DETECTADA NENHUMA NOVA LEITURA PELO MÓDULO, 
   // SERÁ MOSTRADO ESTA MENSAGEM DE ERRO.
   if (millis() > 15000 && gps.charsProcessed() < 10) {
-    Serial.println("Sinal GPS não detectado");
+    Serial.println("\nSinal GPS não detectado");
     while(true);
   }
 }
@@ -44,17 +50,17 @@ void loop()
 void displayInfo() {
   // SE A LOCALIZAÇÃO DO SINAL ENCONTRADO É VÁLIDA, ENTÃO
   if(gps.location.isValid()) {
-    Serial.print("Latitude: ");
+    Serial.print("\nLatitude: ");
 
-    // IMPRIME NA SERIAL O VALOR DA LATIDUE LIDA
+    // IMPRIME NA SERIAL O VALOR DA LATITUDE LIDA
     Serial.println(gps.location.lat(), 6);
-    Serial.print("Longitude: ");
+    Serial.print("\nLongitude: ");
 
     // IMPRIME NA SERIAL O VALOR DA LONGITUDE LIDA
     Serial.println(gps.location.lng(), 6);
   } else {
     // SE NÃO HOUVER NENHUMA LEITURA, IMPRIME A MENSAGEM DE ERRO NA SERIAL
-    Serial.println("Não detectamos a localização");
+    Serial.println("\nNão detectamos a localização");
   }
 
   Serial.print("Data: ");

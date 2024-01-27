@@ -17,7 +17,7 @@
 #define ENABLE_MPU true
 #define ENABLE_SKIBS true
 #define ENABLE_SD true
-#define ENABLE_TELEMETRY true
+#define ENABLE_TELEMETRY false
 #define ENABLE_GPS true
 
 struct PacketData {

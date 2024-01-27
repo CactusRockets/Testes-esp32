@@ -55,7 +55,7 @@ void readMPU() {
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
   allData.data.acceleration_Z = a.acceleration.z;
-  allData.data.altitude_MPU = 0;
 
+  allData.data.altitude_MPU = 0;
   velocidadeAtual = 0;
 }
