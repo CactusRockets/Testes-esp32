@@ -1,25 +1,10 @@
-#include <HardwareSerial.h>
-
 #define RX_PIN 16
 #define TX_PIN 17
-#define M0 33
-#define M1 32
+#define M0 35
+#define M1 34
 
-// Usando a Serial2 do ESP32
 HardwareSerial LoRaSerial(2);
 int contador = 0;
-
-void modoReceptor() {
-  // Configurações para modo Receptor
-  digitalWrite(M0, LOW);
-  digitalWrite(M1, LOW);
-}
-
-void modoTransmissor() {
-  // Configurações para modo Transmissor
-  digitalWrite(M0, LOW);
-  digitalWrite(M1, LOW);
-}
 
 void setup() {
   Serial.begin(9600);
@@ -28,18 +13,19 @@ void setup() {
   pinMode(M0, OUTPUT);
   pinMode(M1, OUTPUT);
 
+  digitalWrite(M0, LOW);
+  digitalWrite(M1, LOW);
+
   LoRaSerial.begin(9600, SERIAL_8N1, RX_PIN, TX_PIN);
   Serial.println("Transmitter setup");
-
-  modoTransmissor();
 }
 
 void loop() {
   String message = "Hello, LoRa!" + String(" ") + String(contador);
 
   Serial.print("Sending message: ");
-  Serial.println(message);
-  LoRaSerial.println(message);
+  Serial.println("message");
+  LoRaSerial.print("message");
 
   contador++;
   // Aguarda entre cada transmissão
