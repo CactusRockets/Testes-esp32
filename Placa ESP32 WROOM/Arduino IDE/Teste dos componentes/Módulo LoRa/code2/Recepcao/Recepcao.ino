@@ -66,8 +66,8 @@ void setup() {
 }
 
 void loop() {
-  // if(LoRaSerial.available()) {
+  if(LoRaSerial.available()) {
     receive(&data);
     printData();
-  // }
+  }
 }
