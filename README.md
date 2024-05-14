@@ -1,5 +1,7 @@
 # Testes de Placas desenvolvimento, componentes, protocolos e outros
 
-Cada código está associado a algum teste que foi realizado (geralmente descrito no README.md da pasta do teste). Logo, não altere os códigos que já estão vinculados a algum teste.
+Este é um repositório dedicado a guardar códigos de testes com os componentes, testar protocolos de comunicação etc.
 
-Se for realizar algum teste novo, crie outro arquivo com o código ou altere o mesmo código, contanto que o que foi alterado seja documentado no próprio README.md do teste.
+Cada código está associado a algum teste que foi realizado. Logo, não altere os códigos que já estão vinculados a algum teste.
+
+Se for realizar algum teste novo com o mesmo componente ou com o mesmo protocolo (que seja), crie outro arquivo com o código ou altere o mesmo código contanto que o que foi alterado seja documentado no próprio README do teste.
